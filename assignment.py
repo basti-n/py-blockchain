@@ -1,39 +1,28 @@
-from functools import reduce
-from typing import Callable
+import random
+import datetime
 
-# (1) 1) Write a normal function that accepts another function as an argument.
-# Output the result of that other function in your “normal” function.
-
-
-def with_logger(fn: Callable, *args: tuple):
-    result = fn(*args)
-    print('Result: {:-^20}'.format(result))
-
-    return result
+# (1) Generate Random Number
 
 
-def add(num1: int, num2: int) -> int:
-    return num1 + num2
+def gen_random_int(*, start: int, end: int) -> int:
+    return random.randint(start, end)
 
 
-with_logger(add, 3, 8)
+start = int(input('What is the start number? '))
+end = int(input('What is the end number? '))
+
+result = gen_random_int(start=start, end=end)
+print('..--..' * 10)
+print('Result is: {:^ }'.format(result))
+print('..--..' * 10)
+
+# (2) Use the datetime library together with the random number to generate a random, unique value.
 
 
-# Call your “normal” function by passing a lambda function
-# – which performs any operation of your choice – as an argument.
+def gen_random_unique_num(*, start: int, end: int) -> int:
+    return datetime.datetime.now().microsecond * gen_random_int(start=start, end=end)
 
-with_logger(lambda num1, num2: num1 * num2, 3, 24)
-
-# Tweak your normal function by allowing an infinite amount of
-# arguments on which your lambda function will be executed.
-
-
-def multiply(num1: int, num2: int) -> int:
-    return num1 * num2
-
-
-with_logger(lambda *args: reduce(multiply, args, 1), 3, 24, 88, 22)
-
-# Format the output of your “normal” function such that numbers look nice 
-# and are centered in a 20 character column.
-
+result_unqiue = gen_random_unique_num(start=start, end=end)
+print('..--..' * 10)
+print('Result is: {:^ }'.format(result_unqiue))
+print('..--..' * 10)

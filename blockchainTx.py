@@ -9,7 +9,6 @@ class Transaction(IterMixin):
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
-        pass
 
 
 def is_root_sender(sender: str) -> bool:

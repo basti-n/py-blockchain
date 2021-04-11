@@ -9,6 +9,18 @@ class BlockEncoder(JSONEncoder):
         return o.__dict__
 
 
+def block_from_deserialized_block(deserializedBlock: str) -> Block:
+    """ Deserializes the JSON to the Block instance """
+    deserializedBlock['transactions'] = [trx_from_deserialized_trx(
+        trx) for trx in deserializedBlock['transactions']]
+    return Block(**deserializedBlock)
+
+
+def trx_from_deserialized_trx(serializedTrx: str) -> Transaction:
+    """ Deserializes the JSON to the Transaction instance """
+    return Transaction(**serializedTrx)
+
+
 def get_last_block(chain: list[Block]) -> Block:
     """  Returns the last block for the provided chain """
     return chain[-1]
@@ -30,6 +42,11 @@ def manipulate_chain(chain: list) -> list:
     return chain
 
 
-def serialize_block(block: Block) -> str:
+def serialize_block(block: Block) -> bytes:
     """ Returns the block as JSON  """
     return BlockEncoder(sort_keys=True).encode(block).encode()
+
+
+def stringify_block(block: Block) -> str:
+    """ Returns a stringified Block """
+    return serialize_block(block).decode()

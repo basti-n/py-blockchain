@@ -1,3 +1,4 @@
+from blockchainStorage import load
 from typing import Union
 import blockchainLogger
 import blockchainConstants
@@ -6,12 +7,16 @@ import blockchainHelpers
 import blockchainMiner
 import blockchainVerifier
 import blockchainOutput
+import blockchainStorage
 
 # Globals
-blockchain = [blockchainConstants.GenesisBlock()]
 open_transactions = []
 owner = 'fips'
 participants = set()
+
+blockchain, open_transactions = blockchainStorage.load()
+if(len(blockchain) < 1):
+    blockchain = [blockchainConstants.GenesisBlock()]
 
 
 def get_last_blockchain_value() -> Union[None, list]:

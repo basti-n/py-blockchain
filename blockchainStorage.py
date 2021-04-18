@@ -28,7 +28,10 @@ def load() -> tuple[list[blockchainConstants.Block], list[blockchainTx.Transacti
 
 def save(blockchain: list[blockchainConstants.Block], open_tx: list[blockchainTx.Transaction]) -> None:
     """ Saves the blockchain and open transactions from stored file """
-    with open(STORAGE_FILE, mode='w') as file:
-        file.write(blockchainHelpers.stringify_block(blockchain))
-        file.write('\n')
-        file.write(blockchainHelpers.stringify_block(open_tx))
+    try:
+        with open(STORAGE_FILE, mode='w') as file:
+            file.write(blockchainHelpers.stringify_block(blockchain))
+            file.write('\n')
+            file.write(blockchainHelpers.stringify_block(open_tx))
+    except IOError:
+        print(f'Alert: Saving {STORAGE_FILE} failed!')

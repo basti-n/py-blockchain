@@ -1,18 +1,15 @@
+from blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
-from blockchainConstants import Block
-from blockchainTx import Transaction, ask_for_tx, add_transaction, verify_transactions, get_balance
-from blockchainVerifier import BlockchainVerifier, Verifier
+from blockchainTx import ask_for_tx, add_transaction, verify_transactions, get_balance
+from blockchainVerifier import Verifier
 from blockchainHelpers import manipulate_chain
 from blockchainOutput import printDependingOn
-from blockchainMiner import mine_block
 from blockchainLogger import print_blocks, print_participants
 
 
 class GUI(metaclass=SingletonMeta):
-    def __init__(self, *, owner: str, blockchain: list[Block], open_transactions: list[Transaction], participants: set[str], verifier: Verifier):
-        self.owner = owner
+    def __init__(self, *, blockchain: Blockchain, participants: set[str], verifier: Verifier):
         self.blockchain = blockchain
-        self.open_transactions = open_transactions
         self.participants = participants
         self.verifier = verifier
         pass
@@ -23,7 +20,7 @@ class GUI(metaclass=SingletonMeta):
             command = self.__get_user_choice()
 
             if command == -1:
-                manipulate_chain(self.blockchain)
+                manipulate_chain(self.blockchain.blockchain)
 
             elif command == 1:
                 transaction_verified = self.__request_tx_data()
@@ -31,18 +28,17 @@ class GUI(metaclass=SingletonMeta):
                     transaction_verified, 'Transaction verified.', 'Transaction rejected.')
 
             elif command == 2:
-                mine_block(
-                    self.blockchain, self.open_transactions, self.owner)
+                self.blockchain.mine()
 
             elif command == 3:
                 print_participants(self.participants)
 
             elif command == 4:
-                print_blocks(self.blockchain)
+                print_blocks(self.blockchain.blockchain)
 
             elif command == 5:
                 transactions_verified = verify_transactions(
-                    self.blockchain, self.open_transactions)
+                    self.blockchain.blockchain, self.blockchain.open_transactions)
                 printDependingOn(
                     transactions_verified, 'All transactions are valid', 'Invalid transaction found!')
 
@@ -50,18 +46,19 @@ class GUI(metaclass=SingletonMeta):
                 print('Exiting Program.')
                 break
 
-            is_valid = self.verifier.is_verified(self.blockchain)
+            is_valid = self.verifier.is_verified(self.blockchain.blockchain)
             if not is_valid:
                 print('Invalid blockchain... exiting!')
                 waiting_for_input = False
 
-            print('Balance: ', get_balance(self.owner, self.blockchain))
+            print('Balance: ', get_balance(
+                self.blockchain.owner, self.blockchain.blockchain, self.blockchain.open_transactions))
 
     def __request_tx_data(self) -> bool:
         """ Adds transaction amount and recipient to open transactions """
         tx_amount, tx_recipient = ask_for_tx()
         return add_transaction(
-            self.owner, tx_recipient, tx_amount, chain=self.blockchain, open_tx=self.open_transactions, participants=self.participants)
+            self.blockchain.owner, tx_recipient, tx_amount, chain=self.blockchain.blockchain, open_tx=self.blockchain.open_transactions, participants=self.participants)
 
     def __get_user_choice(
             self,

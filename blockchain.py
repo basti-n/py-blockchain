@@ -5,7 +5,7 @@ import blockchainConstants
 import blockchainTx
 import blockchainHelpers
 import blockchainMiner
-import blockchainVerifier
+from blockchainVerifier import BlockchainVerifier
 import blockchainOutput
 import blockchainStorage
 
@@ -92,7 +92,7 @@ while waiting_for_input:
         print('Exiting Program.')
         break
 
-    is_valid = blockchainVerifier.is_verified(blockchain)
+    is_valid = BlockchainVerifier.is_verified(blockchain)
     if not is_valid:
         print('Invalid blockchain... exiting!')
         waiting_for_input = False

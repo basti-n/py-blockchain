@@ -9,16 +9,16 @@ class BlockEncoder(JSONEncoder):
         return o.__dict__
 
 
-def block_from_deserialized_block(deserializedBlock: str) -> Block:
+def block_from_deserialized_block(deserializedBlock: Block.__dict__) -> Block:
     """ Deserializes the JSON to the Block instance """
     deserializedBlock['transactions'] = [trx_from_deserialized_trx(
         trx) for trx in deserializedBlock['transactions']]
     return Block(**deserializedBlock)
 
 
-def trx_from_deserialized_trx(serializedTrx: str) -> Transaction:
+def trx_from_deserialized_trx(deserializedTrx: Transaction.__dict__) -> Transaction:
     """ Deserializes the JSON to the Transaction instance """
-    return Transaction(**serializedTrx)
+    return Transaction(**deserializedTrx)
 
 
 def get_last_block(chain: list[Block]) -> Block:

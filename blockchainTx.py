@@ -1,3 +1,4 @@
+from blockchainErrorHandler import ErrorHandler
 from typing import Union
 from utils.mixins.iterMixin import IterMixin
 import blockchainConstants
@@ -63,7 +64,13 @@ def add_reward_transaction(owner: str, open_tx=[], *, sender: str = None, reward
 
 
 def ask_for_tx() -> tuple[float, str]:
-    tx_amount = float(input('Your transaction amount: '))
+    tx_amount: Union[float, None] = None
+    while type(tx_amount) is not float:
+        try:
+            tx_amount = float(input('Your transaction amount: '))
+        except ValueError as valueError:
+            ErrorHandler.logValueError(
+                valueError, msgPrefix='Invalid input: ', msgPostfix='. Please provide a valid number (e.g. 12)')
     tx_recipient = input('Your transaction recipient: ')
     return tx_amount, tx_recipient
 

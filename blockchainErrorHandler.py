@@ -1,7 +1,7 @@
 class ErrorHandler:
 
-    @classmethod
-    def logValueError(cls, error: ValueError, *, msgPrefix: str = 'Error occured for: ', msgPostfix: str = '') -> None:
+    @staticmethod
+    def logValueError(error: ValueError, *, msgPrefix: str = 'Error occured for: ', msgPostfix: str = '') -> None:
         """ Logs the initial input for the passed error to the console  """
         try:
             input = error.args[0].split(':')[-1]

@@ -1,3 +1,4 @@
+from utils.mixins.orderDictMixin import OrderedDictMixin
 from blockchainErrorHandler import ErrorHandler
 from typing import Union
 from utils.mixins.iterMixin import IterMixin
@@ -5,7 +6,7 @@ import blockchainConstants
 import functools
 
 
-class Transaction(IterMixin):
+class Transaction(IterMixin, OrderedDictMixin):
     def __init__(self, sender: str, recipient: str, amount: float) -> None:
         self.sender = sender
         self.recipient = recipient

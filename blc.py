@@ -11,13 +11,21 @@ class Blockchain:
         self.__initialize()
         pass
 
+    @property
+    def blockchain(self):
+        return self.__blockchain
+
+    @property
+    def open_transactions(self):
+        return self.__open_transactions
+
     def mine(self) -> None:
-        self.blockchain, self.open_transactions = get_mined_block(
-            self.blockchain, self.open_transactions, self.owner)
-        self.storage.save(self.blockchain, self.open_transactions)
+        self.__blockchain, self.__open_transactions = get_mined_block(
+            self.__blockchain, self.__open_transactions, self.owner)
+        self.storage.save(self.__blockchain, self.__open_transactions)
 
     def __initialize(self) -> None:
         """ Initializes the blockchain and open transactions by using the provided storage """
-        self.blockchain, self.open_transactions = self.storage.load()
+        self.__blockchain, self.__open_transactions = self.storage.load()
         if(len(self.blockchain) < 1):
             self.blockchain = [GenesisBlock()]

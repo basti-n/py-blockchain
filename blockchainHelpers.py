@@ -53,8 +53,7 @@ def stringify_block(block: Block) -> str:
 
 
 def get_last_blockchain_value(blockchain: list[Block]) -> Union[None, list]:
-    """ Returns the latest value of the blockchain (default [1])
-    """
+    """ Returns the latest value of the blockchain (default [1]) """
     if len(blockchain):
         return blockchain[-1]
     return None

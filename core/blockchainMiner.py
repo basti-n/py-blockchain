@@ -1,6 +1,6 @@
-from blockchainHasher import createHashedBlock, proof_of_work
-from blockchainTx import add_reward_transaction, clear_transactions
-from blockchainConstants import Block
+from core.blockchainHasher import createHashedBlock, proof_of_work
+from core.blockchainTx import add_reward_transaction, clear_transactions
+from core.blockchainConstants import Block
 
 
 def get_mined_block(chain: list[Block], open_tx: list, owner: str) -> tuple[list[Block], list]:

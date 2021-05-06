@@ -1,5 +1,4 @@
-from blockchainConstants import Block
-
+from core.blockchainConstants import Block
 
 def print_blocks(chain: list[Block], *, verbose=False) -> None:
     if verbose:

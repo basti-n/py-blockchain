@@ -1,7 +1,7 @@
 import hashlib
-import blockchainConstants
-import blockchainHelpers
-import blockchainTx
+import core.blockchainConstants as blockchainConstants
+import utils.blockchainHelpers as blockchainHelpers
+import core.blockchainTx as blockchainTx
 
 
 def createHashedBlock(block: blockchainConstants.Block) -> str:

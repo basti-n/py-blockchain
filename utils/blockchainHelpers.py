@@ -1,7 +1,7 @@
-from blockchainTx import Transaction
 from json.encoder import JSONEncoder
 from typing import Union
-from blockchainConstants import Block, initial_block_value
+from core.blockchainTx import Transaction
+from core.blockchainConstants import Block, initial_block_value
 
 
 class BlockEncoder(JSONEncoder):

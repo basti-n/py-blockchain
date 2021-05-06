@@ -1,10 +1,10 @@
-from blc import Blockchain
+from core.blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
-from blockchainTx import ask_for_tx, add_transaction, verify_transactions, get_balance
-from blockchainVerifier import Verifier
-from blockchainHelpers import manipulate_chain
-from blockchainOutput import printDependingOn
-from blockchainLogger import print_blocks, print_participants
+from core.blockchainTx import ask_for_tx, add_transaction, verify_transactions, get_balance
+from core.blockchainVerifier import Verifier
+from utils.blockchainHelpers import manipulate_chain
+from utils.blockchainOutput import printDependingOn
+from utils.blockchainLogger import print_blocks, print_participants
 
 
 class GUI(metaclass=SingletonMeta):

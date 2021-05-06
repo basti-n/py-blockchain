@@ -1,6 +1,6 @@
 from utils.mixins.prettyPrint import PrettyPrintBlockMixin
 from utils.mixins.iterMixin import IterMixin
-import blockchainTx
+import core.blockchainTx as blockchainTx
 
 # Constants
 MINING_REWARD = 10

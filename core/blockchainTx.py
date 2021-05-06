@@ -1,8 +1,8 @@
 from utils.mixins.orderDictMixin import OrderedDictMixin
-from blockchainErrorHandler import ErrorHandler
+from utils.blockchainErrorHandler import ErrorHandler
 from typing import Union
 from utils.mixins.iterMixin import IterMixin
-import blockchainConstants
+import core.blockchainConstants as blockchainConstants
 import functools
 
 

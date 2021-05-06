@@ -1,7 +1,7 @@
 from abc import ABC, abstractstaticmethod
-from blockchainHelpers import get_tx_without_reward_tx
-from blockchainConstants import Block
-from blockchainHasher import createHashedBlock, valid_proof
+from utils.blockchainHelpers import get_tx_without_reward_tx
+from core.blockchainConstants import Block
+from core.blockchainHasher import createHashedBlock, valid_proof
 
 
 class Verifier(ABC):

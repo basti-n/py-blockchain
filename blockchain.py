@@ -1,7 +1,7 @@
-from blc import Blockchain
-from blockchainGui import GUI
-from blockchainStorage import FileStorage
-from blockchainVerifier import BlockchainVerifier
+from core.blc import Blockchain
+from ui.blockchainGui import GUI
+from core.blockchainStorage import FileStorage
+from core.blockchainVerifier import BlockchainVerifier
 
 # Globals
 open_transactions = []

@@ -1,7 +1,7 @@
-from blockchainMiner import get_mined_block
 from typing import Type
-from blockchainConstants import GenesisBlock
-from blockchainStorage import Storage
+from core.blockchainMiner import get_mined_block
+from core.blockchainConstants import GenesisBlock
+from core.blockchainStorage import Storage
 
 
 class Blockchain:

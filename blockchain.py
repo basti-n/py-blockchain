@@ -9,8 +9,9 @@ owner = 'fips'
 participants = set()
 blockchain = Blockchain(FileStorage, owner)
 
-gui = GUI(blockchain=blockchain, participants=participants,
-          verifier=BlockchainVerifier)
-gui.start()
+if __name__ == '__main__':
+    gui = GUI(blockchain=blockchain, participants=participants,
+              verifier=BlockchainVerifier)
+    gui.start()
 
-print('Done!')
+    print('Done!')

@@ -1,4 +1,7 @@
-def print_blocks(chain, *, verbose=False) -> None:
+from blockchainConstants import Block
+
+
+def print_blocks(chain: list[Block], *, verbose=False) -> None:
     if verbose:
         for block in chain:
             print('Print Block')
@@ -6,7 +9,7 @@ def print_blocks(chain, *, verbose=False) -> None:
         else:
             print(' - ' * 20)
 
-    print(f'Chain: {chain}')
+    print(f'Chain: {[str(block) for block in chain]}')
     print(' - ' * 20)
 
 

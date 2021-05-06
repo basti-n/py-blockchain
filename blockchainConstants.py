@@ -1,5 +1,6 @@
-import blockchainTx
+from utils.mixins.prettyPrint import PrettyPrintBlockMixin
 from utils.mixins.iterMixin import IterMixin
+import blockchainTx
 
 # Constants
 MINING_REWARD = 10
@@ -7,7 +8,7 @@ MINING_ROOT_SENDER = 'root_sender'
 INITIAL_PROOF = 100
 
 
-class Block(IterMixin):
+class Block(IterMixin, PrettyPrintBlockMixin):
     def __init__(self, previous_hash: str, index: int, transactions: list[blockchainTx.Transaction], proof: int):
         self.previous_hash = previous_hash
         self.index = index

@@ -34,7 +34,7 @@ def verify_transactions(chain: list, open_transactions: list[Transaction]) -> bo
     return all([balance > 0 for balance in balances])
 
 
-def add_transaction(sender, recipient, value=1.0, *, chain: list = [], open_tx=[], participants: set = set()) -> bool:
+def append_transaction(sender: str, recipient: str, value=1.0, *, chain: list = [], open_tx=[], participants: set = set()) -> list[Transaction]:
     """ Adds a value to the blockchain incl. the latest previous value.
 
     Arguments:
@@ -50,8 +50,8 @@ def add_transaction(sender, recipient, value=1.0, *, chain: list = [], open_tx=[
         open_tx.append(tx)
         participants.add(recipient)
         participants.add(sender)
-        return True
-    return False
+        return open_tx
+    return open_tx
 
 
 def add_reward_transaction(owner: str, open_tx=[], *, sender: str = None, reward: Union[int, float] = None) -> Transaction:
@@ -61,7 +61,7 @@ def add_reward_transaction(owner: str, open_tx=[], *, sender: str = None, reward
     if not reward:
         reward = blockchainConstants.MINING_REWARD
 
-    add_transaction(sender, owner, reward, open_tx=open_tx)
+    append_transaction(sender, owner, reward, open_tx=open_tx)
 
 
 def ask_for_tx() -> tuple[float, str]:

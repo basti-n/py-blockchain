@@ -1,6 +1,6 @@
 from core.blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
-from core.blockchainTx import ask_for_tx, add_transaction, verify_transactions, get_balance
+from core.blockchainTx import ask_for_tx, verify_transactions, get_balance
 from core.blockchainVerifier import Verifier
 from utils.blockchainHelpers import manipulate_chain
 from utils.blockchainOutput import printDependingOn
@@ -57,8 +57,7 @@ class GUI(metaclass=SingletonMeta):
     def __request_tx_data(self) -> bool:
         """ Adds transaction amount and recipient to open transactions """
         tx_amount, tx_recipient = ask_for_tx()
-        return add_transaction(
-            self.blockchain.owner, tx_recipient, tx_amount, chain=self.blockchain.blockchain, open_tx=self.blockchain.open_transactions, participants=self.participants)
+        return self.blockchain.add_transaction(self.blockchain.owner, tx_recipient, tx_amount, participants=self.participants)
 
     def __get_user_choice(
             self,

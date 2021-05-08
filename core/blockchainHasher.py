@@ -2,6 +2,7 @@ import hashlib
 import core.blockchainConstants as blockchainConstants
 import utils.blockchainHelpers as blockchainHelpers
 import core.blockchainTx as blockchainTx
+from typing import List
 
 
 def createHashedBlock(block: blockchainConstants.Block) -> str:
@@ -12,7 +13,7 @@ def createHashedBlock(block: blockchainConstants.Block) -> str:
     return hashed_block
 
 
-def valid_proof(txs: list[blockchainTx.Transaction], previous_hash: str, proof: int) -> bool:
+def valid_proof(txs: List[blockchainTx.Transaction], previous_hash: str, proof: int) -> bool:
     guess = (str(txs) +
              str(previous_hash) + str(proof)).encode()
     guess_hash = hashlib.sha256(guess).hexdigest()
@@ -20,7 +21,7 @@ def valid_proof(txs: list[blockchainTx.Transaction], previous_hash: str, proof: 
     return guess_hash[0:2] == '00'
 
 
-def proof_of_work(chain: list[blockchainConstants.Block], open_tx: list[blockchainTx.Transaction]) -> int:
+def proof_of_work(chain: List[blockchainConstants.Block], open_tx: List[blockchainTx.Transaction]) -> int:
     """ Returns the proof of work result (integer) """
     last_block = blockchainHelpers.get_last_block(chain)
     last_hash = createHashedBlock(last_block)

@@ -2,6 +2,7 @@ from abc import ABC, abstractstaticmethod
 from utils.blockchainHelpers import get_tx_without_reward_tx
 from core.blockchainConstants import Block
 from core.blockchainHasher import createHashedBlock, valid_proof
+from typing import List
 
 
 class Verifier(ABC):
@@ -12,7 +13,7 @@ class Verifier(ABC):
 
 class BlockchainVerifier(Verifier):
     @staticmethod
-    def is_verified(chain: list[Block]) -> bool:
+    def is_verified(chain: List[Block]) -> bool:
         """ Verifies the provided chain (True or False) """
         for (block_index, block) in enumerate(chain):
 

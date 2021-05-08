@@ -1,9 +1,10 @@
 from core.blockchainHasher import createHashedBlock, proof_of_work
 from core.blockchainTx import add_reward_transaction, clear_transactions
 from core.blockchainConstants import Block
+from typing import Tuple, List
 
 
-def get_mined_block(chain: list[Block], open_tx: list, owner: str) -> tuple[list[Block], list]:
+def get_mined_block(chain: List[Block], open_tx: list, owner: str) -> Tuple[List[Block], list]:
     """ Appends created block to chain and returns chain and open transactions """
     last_block = chain[-1]
     hashed_block = createHashedBlock(last_block)

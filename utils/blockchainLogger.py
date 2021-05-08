@@ -1,6 +1,8 @@
 from core.blockchainConstants import Block
+from typing import List
 
-def print_blocks(chain: list[Block], *, verbose=False) -> None:
+
+def print_blocks(chain: List[Block], *, verbose=False) -> None:
     if verbose:
         for block in chain:
             print('Print Block')

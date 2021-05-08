@@ -4,13 +4,14 @@ from utils.metaclasses.singletonMeta import SingletonMeta
 import core.blockchainConstants as blockchainConstants
 import core.blockchainTx as blockchainTx
 import utils.blockchainHelpers as blockchainHelpers
+from typing import Tuple, List
 
 STORAGE_FILE = 'storage.txt'
 
 
 class Storage(metaclass=SingletonMeta):
     @abstractmethod
-    def load() -> tuple[list[blockchainConstants.Block], list[blockchainTx.Transaction]]:
+    def load() -> Tuple[List[blockchainConstants.Block], List[blockchainTx.Transaction]]:
         pass
 
     @abstractmethod
@@ -23,10 +24,10 @@ class FileStorage(Storage):
     def __init__(self, path=STORAGE_FILE):
         self.path = path
 
-    def load(self) -> tuple[list[blockchainConstants.Block], list[blockchainTx.Transaction]]:
+    def load(self) -> Tuple[List[blockchainConstants.Block], List[blockchainTx.Transaction]]:
         """ Loads and returns the blockchain and open transactions from stored file """
-        fallback: tuple[list[blockchainConstants.Block],
-                        list[blockchainTx.Transaction]] = ([], [])
+        fallback: Tuple[List[blockchainConstants.Block],
+                        List[blockchainTx.Transaction]] = ([], [])
 
         try:
             with open(self.path, mode='r') as file:
@@ -52,7 +53,7 @@ class FileStorage(Storage):
             print('Fallback: Returning empty Block and Transactions')
             return fallback
 
-    def save(self, blockchain: list[blockchainConstants.Block], open_tx: list[blockchainTx.Transaction]) -> None:
+    def save(self, blockchain: List[blockchainConstants.Block], open_tx: List[blockchainTx.Transaction]) -> None:
         """ Saves the blockchain and open transactions from stored file """
         try:
             with open(self.path, mode='w') as file:

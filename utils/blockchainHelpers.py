@@ -2,6 +2,7 @@ from json.encoder import JSONEncoder
 from typing import Union
 from core.blockchainTx import Transaction
 from core.blockchainConstants import Block, initial_block_value
+from typing import List
 
 
 class BlockEncoder(JSONEncoder):
@@ -21,12 +22,12 @@ def trx_from_deserialized_trx(deserializedTrx: Transaction.__dict__) -> Transact
     return Transaction(**deserializedTrx)
 
 
-def get_last_block(chain: list[Block]) -> Block:
+def get_last_block(chain: List[Block]) -> Block:
     """  Returns the last block for the provided chain """
     return chain[-1]
 
 
-def get_tx_without_reward_tx(transactions: list[Transaction]) -> list[Transaction]:
+def get_tx_without_reward_tx(transactions: List[Transaction]) -> List[Transaction]:
     """ Returns all transacitons except the last (reward transaction) """
     return transactions[:-1]
 
@@ -52,7 +53,7 @@ def stringify_block(block: Block) -> str:
     return serialize_block(block).decode()
 
 
-def get_last_blockchain_value(blockchain: list[Block]) -> Union[None, list]:
+def get_last_blockchain_value(blockchain: List[Block]) -> Union[None, list]:
     """ Returns the latest value of the blockchain (default [1]) """
     if len(blockchain):
         return blockchain[-1]

@@ -5,10 +5,11 @@ from core.blockchainVerifier import Verifier
 from utils.blockchainHelpers import manipulate_chain
 from utils.blockchainOutput import printDependingOn
 from utils.blockchainLogger import print_blocks, print_participants
+from typing import Set
 
 
 class GUI(metaclass=SingletonMeta):
-    def __init__(self, *, blockchain: Blockchain, participants: set[str], verifier: Verifier):
+    def __init__(self, *, blockchain: Blockchain, participants: Set[str], verifier: Verifier):
         self.blockchain = blockchain
         self.participants = participants
         self.verifier = verifier
@@ -42,6 +43,12 @@ class GUI(metaclass=SingletonMeta):
                 printDependingOn(
                     transactions_verified, 'All transactions are valid', 'Invalid transaction found!')
 
+            elif command == 6:
+                self.blockchain.create_wallet()
+
+            elif command == 7:
+                pass
+
             elif command == 0:
                 print('Exiting Program.')
                 break
@@ -66,6 +73,8 @@ class GUI(metaclass=SingletonMeta):
             thirdOption: str = 'Print Participants',
             fourthOption: str = 'Print Blocks',
             fifthOption: str = 'Verify open transactions',
+            sixthOption: str = 'Create Wallet',
+            seventhOption: str = 'Load Wallet',
             offerQuit: bool = True,
             offerManipulate: bool = True) -> int:
         """ Returns the user choise as an integer """
@@ -75,6 +84,8 @@ class GUI(metaclass=SingletonMeta):
         print(f'Option 3: {thirdOption}')
         print(f'Option 4: {fourthOption}')
         print(f'Option 5: {fifthOption}')
+        print(f'Option 6: {sixthOption}')
+        print(f'Option 7: {seventhOption}')
 
         if offerQuit == True:
             print(f'Quit: Press "q" for quitting')

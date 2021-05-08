@@ -1,6 +1,6 @@
 from utils.mixins.orderDictMixin import OrderedDictMixin
 from utils.blockchainErrorHandler import ErrorHandler
-from typing import Union
+from typing import Union, List, Tuple
 from utils.mixins.iterMixin import IterMixin
 import core.blockchainConstants as blockchainConstants
 import functools
@@ -17,7 +17,7 @@ def is_root_sender(sender: str) -> bool:
     return sender == blockchainConstants.MINING_ROOT_SENDER
 
 
-def verify_transaction(tx: Transaction, chain: list, open_transactions: list[Transaction]) -> bool:
+def verify_transaction(tx: Transaction, chain: list, open_transactions: List[Transaction]) -> bool:
     """ Checks whether sufficient funds for the transaction are present """
     if(is_root_sender(tx.sender)):
         return True
@@ -26,7 +26,7 @@ def verify_transaction(tx: Transaction, chain: list, open_transactions: list[Tra
     return balance_sender >= tx.amount
 
 
-def verify_transactions(chain: list, open_transactions: list[Transaction]) -> bool:
+def verify_transactions(chain: list, open_transactions: List[Transaction]) -> bool:
     """ Checks all transactions for valid funds """
     balances = [get_balance(participant, chain, open_transactions)
                 for participant in get_participants_from_transactions(open_transactions)]
@@ -34,7 +34,7 @@ def verify_transactions(chain: list, open_transactions: list[Transaction]) -> bo
     return all([balance > 0 for balance in balances])
 
 
-def append_transaction(sender: str, recipient: str, value=1.0, *, chain: list = [], open_tx=[], participants: set = set()) -> list[Transaction]:
+def append_transaction(sender: str, recipient: str, value=1.0, *, chain: list = [], open_tx=[], participants: set = set()) -> List[Transaction]:
     """ Adds a value to the blockchain incl. the latest previous value.
 
     Arguments:
@@ -64,7 +64,7 @@ def add_reward_transaction(owner: str, open_tx=[], *, sender: str = None, reward
     append_transaction(sender, owner, reward, open_tx=open_tx)
 
 
-def ask_for_tx() -> tuple[float, str]:
+def ask_for_tx() -> Tuple[float, str]:
     tx_amount: Union[float, None] = None
     while type(tx_amount) is not float:
         try:
@@ -86,7 +86,7 @@ def clear_transactions(open_transactions: list) -> None:
     open_transactions.clear()
 
 
-def get_balance(participant: str, chain: list, open_transactions: list[Transaction] = []) -> float:
+def get_balance(participant: str, chain: list, open_transactions: List[Transaction] = []) -> float:
     tx_amounts_received = [[tx.amount for tx in block.transactions if tx.recipient ==
                             participant] for block in chain]
 
@@ -105,12 +105,12 @@ def get_balance(participant: str, chain: list, open_transactions: list[Transacti
     return amount_received - amount_sent
 
 
-def calculate_balance(amounts: list[tuple]) -> float:
+def calculate_balance(amounts: List[tuple]) -> float:
     """ Calculates the sum for the provided amounts """
     return functools.reduce(lambda acc, curr: acc +
                             (sum(curr) if len(curr) else 0), amounts, 0)
 
 
-def get_participants_from_transactions(transactions: list[Transaction]) -> list[str]:
+def get_participants_from_transactions(transactions: List[Transaction]) -> List[str]:
     return list(set([tx.sender for tx in transactions] +
                     [tx.recipient for tx in transactions]))

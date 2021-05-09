@@ -15,7 +15,7 @@ class Storage(metaclass=SingletonMeta):
         pass
 
     @abstractmethod
-    def save() -> None:
+    def save() -> bool:
         pass
 
 
@@ -53,12 +53,14 @@ class FileStorage(Storage):
             print('Fallback: Returning empty Block and Transactions')
             return fallback
 
-    def save(self, blockchain: List[blockchainConstants.Block], open_tx: List[blockchainTx.Transaction]) -> None:
+    def save(self, blockchain: List[blockchainConstants.Block], open_tx: List[blockchainTx.Transaction]) -> bool:
         """ Saves the blockchain and open transactions from stored file """
         try:
             with open(self.path, mode='w') as file:
                 file.write(blockchainHelpers.stringify_block(blockchain))
                 file.write('\n')
                 file.write(blockchainHelpers.stringify_block(open_tx))
+                return True
         except IOError:
             print(f'Alert: Saving {self.path} failed!')
+            return False

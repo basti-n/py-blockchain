@@ -18,3 +18,9 @@ def print_participants(participants: set) -> None:
     print(20 * ' - ')
     print('Participants: ', participants)
     print(20 * ' - ')
+
+
+def warn_no_wallet(action: str) -> None:
+    print('\n----  E R R O R  ---- ')
+    print('Error when {}: Blockchain has no wallet or owner.'.format(action))
+    print('----  E R R O R  ---- \n')

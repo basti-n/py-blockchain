@@ -5,9 +5,8 @@ from core.blockchainVerifier import BlockchainVerifier
 
 # Globals
 open_transactions = []
-owner = 'fips'
 participants = set()
-blockchain = Blockchain(FileStorage, owner)
+blockchain = Blockchain(FileStorage)
 
 if __name__ == '__main__':
     gui = GUI(blockchain=blockchain, participants=participants,

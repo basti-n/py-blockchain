@@ -1,4 +1,5 @@
 from typing import Type, List
+from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
 from core.blockchainStorage import Storage
@@ -7,10 +8,10 @@ from core.blockchainWallet import Wallet
 
 
 class Blockchain:
-    def __init__(self, storage: Type[Storage], owner: str) -> None:
+    def __init__(self, storage: Type[Storage]) -> None:
         self.storage = storage()
-        self.owner = owner
-        self.wallet = Wallet()
+        self.wallet = None
+        self.owner = None
         self.__initialize()
         pass
 
@@ -30,18 +31,31 @@ class Blockchain:
     def open_transactions_size(self):
         return len(self.__open_transactions)
 
-    def mine(self) -> None:
-        self.__blockchain, self.__open_transactions = get_mined_block(
-            self.__blockchain, self.__open_transactions, self.owner)
-        self.__save()
+    @property
+    def has_wallet(self):
+        return self.wallet != None and self.owner != None
+
+    def mine(self) -> bool:
+        """ Mines a block and saves the blockchain and open transactions """
+        if self.has_wallet:
+            self.__blockchain, self.__open_transactions = get_mined_block(
+                self.__blockchain, self.__open_transactions, self.owner)
+            return self.__save()
+        else:
+            warn_no_wallet('mining')
+            return False
 
     def add_transaction(self, sender: str, recipient: str, value=1.0, participants: set = set()) -> bool:
         """ Adds new transactions to open transactions and save it to storage  """
-        initial_tx_size = self.open_transactions_size
-        self.__open_transactions = append_transaction(
-            sender, recipient, value, chain=self.__blockchain, open_tx=self.__open_transactions, participants=participants)
-        self.__save()
-        return self.open_transactions_size > initial_tx_size
+        if self.has_wallet:
+            initial_tx_size = self.open_transactions_size
+            self.__open_transactions = append_transaction(
+                sender, recipient, value, chain=self.__blockchain, open_tx=self.__open_transactions, participants=participants)
+            self.__save()
+            return self.open_transactions_size > initial_tx_size
+        else:
+            warn_no_wallet('adding transaction')
+            return False
 
     def create_wallet(self) -> None:
         """ Sets private key and owner (public key) """
@@ -57,5 +71,5 @@ class Blockchain:
         if(len(self.blockchain) < 1):
             self.blockchain = [GenesisBlock()]
 
-    def __save(self) -> None:
-        self.storage.save(self.__blockchain, self.__open_transactions)
+    def __save(self) -> bool:
+        return self.storage.save(self.__blockchain, self.__open_transactions)

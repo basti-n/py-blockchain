@@ -1,6 +1,5 @@
 import json
-from abc import abstractmethod
-from utils.metaclasses.singletonMeta import SingletonMeta
+from core.storage import Storage, StorageAction
 import core.blockchainConstants as blockchainConstants
 import core.blockchainTx as blockchainTx
 import utils.blockchainHelpers as blockchainHelpers
@@ -9,20 +8,10 @@ from typing import Tuple, List
 STORAGE_FILE = 'storage.txt'
 
 
-class Storage(metaclass=SingletonMeta):
-    @abstractmethod
-    def load() -> Tuple[List[blockchainConstants.Block], List[blockchainTx.Transaction]]:
-        pass
-
-    @abstractmethod
-    def save() -> bool:
-        pass
-
-
 class FileStorage(Storage):
 
-    def __init__(self, path=STORAGE_FILE):
-        self.path = path
+    def __init__(self, path=STORAGE_FILE) -> None:
+        super().__init__(path)
 
     def load(self) -> Tuple[List[blockchainConstants.Block], List[blockchainTx.Transaction]]:
         """ Loads and returns the blockchain and open transactions from stored file """
@@ -49,7 +38,7 @@ class FileStorage(Storage):
                 return (blocks, transactions)
 
         except (IOError, IndexError):
-            print(f'Alert: Error reading file {self.path}')
+            self.print_error_saving(StorageAction.LOADING)
             print('Fallback: Returning empty Block and Transactions')
             return fallback
 
@@ -61,6 +50,7 @@ class FileStorage(Storage):
                 file.write('\n')
                 file.write(blockchainHelpers.stringify_block(open_tx))
                 return True
+
         except IOError:
-            print(f'Alert: Saving {self.path} failed!')
+            self.print_error_saving(StorageAction.SAVING)
             return False

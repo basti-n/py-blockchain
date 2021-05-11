@@ -65,11 +65,31 @@ class Blockchain:
         self.wallet.create_keys()
         self.owner = self.wallet.public_key
 
+    def save_wallet(self) -> bool:
+        if not self.has_wallet:
+            print('Error: Wallet does not exist.')
+            return False
+
+        return self.wallet.save_keys()
+
+    def load_wallet(self) -> None:
+        """ Loads owner (public key) from storage """
+        if self.wallet == None:
+            self.wallet = Wallet()
+
+        if self.wallet.load_keys():
+            self.owner = self.wallet.public_key
+        else:
+            self.__reset_owner()
+
     def __initialize(self) -> None:
         """ Initializes the blockchain and open transactions by using the provided storage """
         self.__blockchain, self.__open_transactions = self.storage.load()
-        if(len(self.blockchain) < 1):
+        if len(self.blockchain) < 1:
             self.blockchain = [GenesisBlock()]
 
     def __save(self) -> bool:
         return self.storage.save(self.__blockchain, self.__open_transactions)
+
+    def __reset_owner(self) -> None:
+        self.owner = None

@@ -35,10 +35,11 @@ class FileStorage(Storage):
                 print(transactions)
                 print('===' * 30)
 
+                self.print_success(StorageAction.LOADING)
                 return (blocks, transactions)
 
         except (IOError, IndexError):
-            self.print_error_saving(StorageAction.LOADING)
+            self.print_error(StorageAction.LOADING)
             print('Fallback: Returning empty Block and Transactions')
             return fallback
 
@@ -49,8 +50,10 @@ class FileStorage(Storage):
                 file.write(blockchainHelpers.stringify_block(blockchain))
                 file.write('\n')
                 file.write(blockchainHelpers.stringify_block(open_tx))
+                self.print_success(StorageAction.SAVING)
+
                 return True
 
         except IOError:
-            self.print_error_saving(StorageAction.SAVING)
+            self.print_error(StorageAction.SAVING)
             return False

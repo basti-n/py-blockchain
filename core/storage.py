@@ -23,5 +23,8 @@ class Storage(metaclass=SingletonMeta):
     def save() -> bool:
         pass
 
-    def print_error_saving(self, action: StorageAction) -> None:
+    def print_success(self, action: StorageAction) -> None:
+        print(f'Completed: {action.value.capitalize()} {self.path} successful!')
+
+    def print_error(self, action: StorageAction) -> None:
         print(f'Alert: {action.value.capitalize()} {self.path} failed!')

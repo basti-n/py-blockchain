@@ -1,4 +1,5 @@
-from typing import Any, Tuple
+from core.walletStorage import WalletStorage
+from typing import Tuple
 from Crypto.PublicKey import RSA
 import Crypto.Random
 import binascii
@@ -9,6 +10,7 @@ class Wallet:
         self.__bits = bits
         self.__private_key = None
         self.__public_key = None
+        self.storage = WalletStorage()
 
     @property
     def public_key(self):
@@ -26,8 +28,19 @@ class Wallet:
             print('Error generating keys (Message: {})'.format(error))
             return ()
 
-    def load_keys(self) -> Any:
-        pass
+    def load_keys(self) -> bool:
+        """ Loads private and public key from file """
+        keys = self.storage.load()
+        if not keys == None and len(keys) > 1:
+            self.__private_key, self.__public_key = keys
+            return True
+        
+        return False
+
+
+    def save_keys(self) -> bool:
+        """ Saves private and public key to file"""
+        return self.storage.save(self.__private_key, self.__public_key)
 
     def create_keys(self) -> None:
         """ Creates and sets private and public key """

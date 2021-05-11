@@ -47,7 +47,10 @@ class GUI(metaclass=SingletonMeta):
                 self.blockchain.create_wallet()
 
             elif command == 7:
-                pass
+                self.blockchain.load_wallet()
+
+            elif command == 8:
+                self.blockchain.save_wallet()
 
             elif command == 0:
                 print('Exiting Program.')
@@ -75,6 +78,7 @@ class GUI(metaclass=SingletonMeta):
             fifthOption: str = 'Verify open transactions',
             sixthOption: str = 'Create Wallet',
             seventhOption: str = 'Load Wallet',
+            eigthOption: str = 'Save Wallet',
             offerQuit: bool = True,
             offerManipulate: bool = True) -> int:
         """ Returns the user choise as an integer """
@@ -86,6 +90,7 @@ class GUI(metaclass=SingletonMeta):
         print(f'Option 5: {fifthOption}')
         print(f'Option 6: {sixthOption}')
         print(f'Option 7: {seventhOption}')
+        print(f'Option 8: {eigthOption}')
 
         if offerQuit == True:
             print(f'Quit: Press "q" for quitting')

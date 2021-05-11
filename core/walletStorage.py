@@ -22,7 +22,7 @@ class WalletStorage(Storage):
                     print('No keys found in {}.'.format(self.path))
                     return None
 
-                public_key = keys[0]
+                public_key = keys[0][:-1]
                 private_key = keys[1]
 
                 print('===' * 30)
@@ -30,10 +30,11 @@ class WalletStorage(Storage):
                 print(private_key)
                 print('===' * 30)
 
+                self.print_success(StorageAction.LOADING)
                 return (public_key, private_key)
 
         except (IOError, IndexError):
-            self.print_error_saving(StorageAction.LOADING)
+            self.print_error(StorageAction.LOADING)
             print('Fallback: Returning None result')
             return None
 
@@ -44,8 +45,9 @@ class WalletStorage(Storage):
                 file.write(public_key)
                 file.write('\n')
                 file.write(private_key)
+                self.print_success(StorageAction.SAVING)
                 return True
 
-        except IOError:
-            self.print_error_saving(StorageAction.SAVING)
+        except (IOError, IndexError):
+            self.print_error(StorageAction.SAVING)
             return False

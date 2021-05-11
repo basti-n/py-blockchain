@@ -1,3 +1,5 @@
+from core.storage import StorageAction
+from utils.blockchainLogger import warn_no_key
 from core.walletStorage import WalletStorage
 from typing import Tuple
 from Crypto.PublicKey import RSA
@@ -15,6 +17,10 @@ class Wallet:
     @property
     def public_key(self):
         return self.__public_key
+
+    @property
+    def has_keys(self):
+        return self.__public_key != None and self.__private_key != None
 
     def generate_keys(self) -> Tuple[str, str]:
         """ Generates a pair of private-public key """
@@ -34,13 +40,15 @@ class Wallet:
         if not keys == None and len(keys) > 1:
             self.__private_key, self.__public_key = keys
             return True
-        
+
         return False
 
-
     def save_keys(self) -> bool:
-        """ Saves private and public key to file"""
-        return self.storage.save(self.__private_key, self.__public_key)
+        """ Saves private and public key to file """
+        if self.has_keys:
+            return self.storage.save(self.__private_key, self.__public_key)
+        else:
+            warn_no_key(StorageAction.SAVING)
 
     def create_keys(self) -> None:
         """ Creates and sets private and public key """

@@ -1,8 +1,11 @@
+from utils.binaryConverters import BinaryConverter
 from core.storage import StorageAction
 from utils.blockchainLogger import warn_no_key
 from core.walletStorage import WalletStorage
 from typing import Tuple
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
 import Crypto.Random
 import binascii
 
@@ -54,5 +57,18 @@ class Wallet:
         """ Creates and sets private and public key """
         self.__private_key, self.__public_key = self.generate_keys()
 
+    def sign_transaction(self, sender: str, recipient: str, amount: int) -> str:
+        """ Signs and returns a stringified version of the hashed transaction """
+        signer: PKCS1_v1_5.PKCS115_SigScheme = PKCS1_v1_5.new(RSA.importKey(
+            self.__to_binary(self.__private_key)))
+        hashed_tx = self.__hash_transaction(sender, recipient, amount)
+        return BinaryConverter.to_ascii(signer.sign(hashed_tx))
+
     def __to_ascii(self, key) -> str:
-        return binascii.hexlify(key.exportKey(format='DER')).decode('ascii')
+        return BinaryConverter.to_ascii(key.exportKey(format='DER'))
+
+    def __to_binary(self, key: str):
+        return BinaryConverter.to_binary(key)
+
+    def __hash_transaction(self, sender: str, recipient: str, amount: int, *, encoding='utf8') -> SHA256.SHA256Hash:
+        return SHA256.new((str(sender) + str(recipient) + str(amount)).encode(encoding))

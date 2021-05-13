@@ -2,15 +2,16 @@ from utils.mixins.orderDictMixin import OrderedDictMixin
 from utils.blockchainErrorHandler import ErrorHandler
 from typing import Union, List, Tuple
 from utils.mixins.iterMixin import IterMixin
-import core.blockchainConstants as blockchainConstants
 import functools
+import core.blockchainConstants as blockchainConstants
 
 
 class Transaction(IterMixin, OrderedDictMixin):
-    def __init__(self, sender: str, recipient: str, amount: float) -> None:
+    def __init__(self, sender: str, recipient: str, amount: float, signature: str) -> None:
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
+        self.signature = signature
 
 
 def is_root_sender(sender: str) -> bool:
@@ -34,18 +35,20 @@ def verify_transactions(chain: list, open_transactions: List[Transaction]) -> bo
     return all([balance > 0 for balance in balances])
 
 
-def append_transaction(sender: str, recipient: str, value=1.0, *, chain: list = [], open_tx=[], participants: set = set()) -> List[Transaction]:
+def append_transaction(sender: str, recipient: str, value=1.0, *, signature: str = '', chain: list = [], open_tx=[], participants: set = set()) -> List[Transaction]:
     """ Adds a value to the blockchain incl. the latest previous value.
 
     Arguments:
-        :sender: The TXs sender.
-        :recipient: The TXs recipient.
-        :amount: The TX amount (default 1.0)
+        :sender: The TXs sender
+        :recipient: The TXs recipient
+        :value: The TX amount (default 1.0)
+        :signature: The TX signature (default: '')
+        :chain: The blockchain
         :open_tx: List of open transactions
         :participants: Record of participants involved in blockchain
     """
 
-    tx = get_tx_data(sender, recipient, value)
+    tx = get_tx_data(sender, recipient, signature, value)
     if verify_transaction(tx, chain, open_tx):
         open_tx.append(tx)
         participants.add(recipient)
@@ -76,9 +79,9 @@ def ask_for_tx() -> Tuple[float, str]:
     return tx_amount, tx_recipient
 
 
-def get_tx_data(sender: str, recipient: str, value: float = 1.0) -> Transaction:
-    """ Transform sender, recipient and value to Transaction Data """
-    return Transaction(sender, recipient, value)
+def get_tx_data(sender: str, recipient: str, signature: str, value: float = 1.0) -> Transaction:
+    """ Transform sender, recipient, signature and value to Transaction Data """
+    return Transaction(sender, recipient, value, signature)
 
 
 def clear_transactions(open_transactions: list) -> None:

@@ -51,7 +51,7 @@ class Blockchain:
             signature = self.wallet.sign_transaction(sender, recipient, amount)
             initial_tx_size = self.open_transactions_size
             self.__open_transactions = append_transaction(
-                sender, recipient, amount, chain=self.__blockchain, open_tx=self.__open_transactions, participants=participants)
+                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants)
             self.__save()
             return self.open_transactions_size > initial_tx_size
         else:

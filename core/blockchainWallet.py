@@ -7,8 +7,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 import Crypto.Random
-import binascii
-
 
 class Wallet:
     def __init__(self, bits=1024) -> None:

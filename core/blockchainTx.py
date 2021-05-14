@@ -1,26 +1,14 @@
-from utils.mixins.orderDictMixin import OrderedDictMixin
+import core.blockchainConstants as blockchainConstants
+from core.models.transaction import Transaction
+from core.transactionVerifier import TransactionVerifier
 from utils.blockchainErrorHandler import ErrorHandler
 from typing import Union, List, Tuple
-from utils.mixins.iterMixin import IterMixin
 import functools
-import core.blockchainConstants as blockchainConstants
-
-
-class Transaction(IterMixin, OrderedDictMixin):
-    def __init__(self, sender: str, recipient: str, amount: float, signature: str) -> None:
-        self.sender = sender
-        self.recipient = recipient
-        self.amount = amount
-        self.signature = signature
-
-
-def is_root_sender(sender: str) -> bool:
-    return sender == blockchainConstants.MINING_ROOT_SENDER
 
 
 def verify_transaction(tx: Transaction, chain: list, open_transactions: List[Transaction]) -> bool:
     """ Checks whether sufficient funds for the transaction are present """
-    if(is_root_sender(tx.sender)):
+    if(Transaction.is_root_sender(tx.sender)):
         return True
 
     balance_sender = get_balance(tx.sender, chain, open_transactions)
@@ -49,7 +37,9 @@ def append_transaction(sender: str, recipient: str, value=1.0, *, signature: str
     """
 
     tx = get_tx_data(sender, recipient, signature, value)
-    if verify_transaction(tx, chain, open_tx):
+    is_verified = TransactionVerifier.is_verified(tx)
+
+    if is_verified and verify_transaction(tx, chain, open_tx):
         open_tx.append(tx)
         participants.add(recipient)
         participants.add(sender)

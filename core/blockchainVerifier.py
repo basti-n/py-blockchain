@@ -1,14 +1,8 @@
-from abc import ABC, abstractstaticmethod
+from core.models.verifier import Verifier
 from utils.blockchainHelpers import get_tx_without_reward_tx
 from core.blockchainConstants import Block
 from core.blockchainHasher import createHashedBlock, valid_proof
 from typing import List
-
-
-class Verifier(ABC):
-    @abstractstaticmethod
-    def isVerified(args: any) -> bool:
-        pass
 
 
 class BlockchainVerifier(Verifier):
@@ -31,3 +25,6 @@ class BlockchainVerifier(Verifier):
                 return False
 
         return True
+
+
+

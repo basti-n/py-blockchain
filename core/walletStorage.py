@@ -1,5 +1,5 @@
 
-from core.storage import StorageAction
+from core.models.storage import StorageAction
 from typing import Tuple, Union
 from core.blockchainStorage import Storage
 

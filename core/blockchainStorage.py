@@ -1,5 +1,5 @@
+from core.models.storage import Storage, StorageAction
 import json
-from core.storage import Storage, StorageAction
 import core.blockchainConstants as blockchainConstants
 import core.blockchainTx as blockchainTx
 import utils.blockchainHelpers as blockchainHelpers

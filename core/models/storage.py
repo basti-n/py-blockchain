@@ -1,8 +1,6 @@
 from abc import abstractmethod
-import core.blockchainConstants as blockchainConstants
-import core.blockchainTx as blockchainTx
 from utils.metaclasses.singletonMeta import SingletonMeta
-from typing import List, Tuple
+from typing import Any
 from enum import Enum
 
 
@@ -16,7 +14,7 @@ class Storage(metaclass=SingletonMeta):
         self.path = path
 
     @abstractmethod
-    def load() -> Tuple[List[blockchainConstants.Block], List[blockchainTx.Transaction]]:
+    def load() -> Any:
         pass
 
     @abstractmethod
@@ -24,7 +22,8 @@ class Storage(metaclass=SingletonMeta):
         pass
 
     def print_success(self, action: StorageAction) -> None:
-        print(f'Completed: {action.value.capitalize()} {self.path} successful!')
+        print(
+            f'Completed: {action.value.capitalize()} {self.path} successful!')
 
     def print_error(self, action: StorageAction) -> None:
         print(f'Alert: {action.value.capitalize()} {self.path} failed!')

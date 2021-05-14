@@ -1,6 +1,7 @@
 from core.blockchainHasher import createHashedBlock, proof_of_work
 from core.blockchainTx import add_reward_transaction, clear_transactions
 from core.blockchainConstants import Block
+from core.transactionVerifier import TransactionVerifier
 from typing import Tuple, List
 
 
@@ -14,6 +15,11 @@ def get_mined_block(chain: List[Block], open_tx: list, owner: str) -> Tuple[List
 
     index = len(open_tx)
     block = Block(hashed_block, index, open_tx.copy(), proof)
+
+    for tx in block.transactions:
+        if not TransactionVerifier.is_verified(tx):
+            return (chain, open_tx)
+
     chain.append(block)
     clear_transactions(open_tx)
     return (chain, open_tx)

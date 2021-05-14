@@ -48,7 +48,7 @@ class Blockchain:
     def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set()) -> bool:
         """ Adds new transactions to open transactions and save it to storage  """
         if self.has_wallet:
-            signature = self.wallet.sign_transaction(sender, recipient, amount)
+            signature = self.wallet.create_signature(sender, recipient, amount)
             initial_tx_size = self.open_transactions_size
             self.__open_transactions = append_transaction(
                 sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants)

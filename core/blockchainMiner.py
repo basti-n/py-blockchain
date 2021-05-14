@@ -2,6 +2,7 @@ from core.blockchainHasher import createHashedBlock, proof_of_work
 from core.blockchainTx import add_reward_transaction, clear_transactions
 from core.blockchainConstants import Block
 from core.transactionVerifier import TransactionVerifier
+from utils.blockchainLogger import warn_invalid_tx
 from typing import Tuple, List
 
 
@@ -18,6 +19,7 @@ def get_mined_block(chain: List[Block], open_tx: list, owner: str) -> Tuple[List
 
     for tx in block.transactions:
         if not TransactionVerifier.is_verified(tx):
+            warn_invalid_tx(tx)
             return (chain, open_tx)
 
     chain.append(block)

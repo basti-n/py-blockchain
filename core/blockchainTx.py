@@ -2,6 +2,7 @@ import core.blockchainConstants as blockchainConstants
 from core.models.transaction import Transaction
 from core.transactionVerifier import TransactionVerifier
 from utils.blockchainErrorHandler import ErrorHandler
+from utils.blockchainLogger import warn_invalid_tx
 from typing import Union, List, Tuple
 import functools
 
@@ -44,6 +45,8 @@ def append_transaction(sender: str, recipient: str, value=1.0, *, signature: str
         participants.add(recipient)
         participants.add(sender)
         return open_tx
+
+    warn_invalid_tx(tx)
     return open_tx
 
 

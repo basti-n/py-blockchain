@@ -1,5 +1,6 @@
 from core.models.storage import StorageAction
 from core.blockchainConstants import Block
+from core.models.transaction import Transaction
 from typing import Any, List
 
 
@@ -30,6 +31,12 @@ def warn_no_wallet(action: StorageAction) -> None:
 def warn_no_key(action: StorageAction) -> None:
     print('\n----  W A R N I N G ---- ')
     print('Error when {} keys: No keys are available'.format(action))
+    print('---- W A R N I N G ---- \n')
+
+
+def warn_invalid_tx(tx: Transaction) -> None:
+    print('\n----  W A R N I N G ---- ')
+    print('Error when validating {}.'.format(tx))
     print('---- W A R N I N G ---- \n')
 
 

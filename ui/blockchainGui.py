@@ -1,14 +1,16 @@
-from blc import Blockchain
+from core.blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
-from blockchainTx import ask_for_tx, add_transaction, verify_transactions, get_balance
-from blockchainVerifier import Verifier
-from blockchainHelpers import manipulate_chain
-from blockchainOutput import printDependingOn
-from blockchainLogger import print_blocks, print_participants
+from core.blockchainTx import ask_for_tx
+from core.blockchainVerifier import Verifier
+from core.transactionVerifier import TransactionVerifier
+from utils.blockchainHelpers import get_balance, manipulate_chain
+from utils.blockchainOutput import printDependingOn
+from utils.blockchainLogger import print_blocks, print_participants
+from typing import Set
 
 
 class GUI(metaclass=SingletonMeta):
-    def __init__(self, *, blockchain: Blockchain, participants: set[str], verifier: Verifier):
+    def __init__(self, *, blockchain: Blockchain, participants: Set[str], verifier: Verifier):
         self.blockchain = blockchain
         self.participants = participants
         self.verifier = verifier
@@ -37,10 +39,19 @@ class GUI(metaclass=SingletonMeta):
                 print_blocks(self.blockchain.blockchain)
 
             elif command == 5:
-                transactions_verified = verify_transactions(
+                transactions_verified = TransactionVerifier.verify_transactions(
                     self.blockchain.blockchain, self.blockchain.open_transactions)
                 printDependingOn(
                     transactions_verified, 'All transactions are valid', 'Invalid transaction found!')
+
+            elif command == 6:
+                self.blockchain.create_wallet()
+
+            elif command == 7:
+                self.blockchain.load_wallet()
+
+            elif command == 8:
+                self.blockchain.save_wallet()
 
             elif command == 0:
                 print('Exiting Program.')
@@ -57,8 +68,7 @@ class GUI(metaclass=SingletonMeta):
     def __request_tx_data(self) -> bool:
         """ Adds transaction amount and recipient to open transactions """
         tx_amount, tx_recipient = ask_for_tx()
-        return add_transaction(
-            self.blockchain.owner, tx_recipient, tx_amount, chain=self.blockchain.blockchain, open_tx=self.blockchain.open_transactions, participants=self.participants)
+        return self.blockchain.add_transaction(self.blockchain.owner, tx_recipient, tx_amount, participants=self.participants)
 
     def __get_user_choice(
             self,
@@ -67,6 +77,9 @@ class GUI(metaclass=SingletonMeta):
             thirdOption: str = 'Print Participants',
             fourthOption: str = 'Print Blocks',
             fifthOption: str = 'Verify open transactions',
+            sixthOption: str = 'Create Wallet',
+            seventhOption: str = 'Load Wallet',
+            eigthOption: str = 'Save Wallet',
             offerQuit: bool = True,
             offerManipulate: bool = True) -> int:
         """ Returns the user choise as an integer """
@@ -76,6 +89,9 @@ class GUI(metaclass=SingletonMeta):
         print(f'Option 3: {thirdOption}')
         print(f'Option 4: {fourthOption}')
         print(f'Option 5: {fifthOption}')
+        print(f'Option 6: {sixthOption}')
+        print(f'Option 7: {seventhOption}')
+        print(f'Option 8: {eigthOption}')
 
         if offerQuit == True:
             print(f'Quit: Press "q" for quitting')

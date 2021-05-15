@@ -1,18 +1,13 @@
-from abc import ABC, abstractstaticmethod
-from blockchainHelpers import get_tx_without_reward_tx
-from blockchainConstants import Block
-from blockchainHasher import createHashedBlock, valid_proof
-
-
-class Verifier(ABC):
-    @abstractstaticmethod
-    def isVerified(args: any) -> bool:
-        pass
+from core.models.verifier import Verifier
+from utils.blockchainHelpers import get_tx_without_reward_tx
+from core.blockchainConstants import Block
+from core.blockchainHasher import createHashedBlock, valid_proof
+from typing import List
 
 
 class BlockchainVerifier(Verifier):
     @staticmethod
-    def is_verified(chain: list[Block]) -> bool:
+    def is_verified(chain: List[Block]) -> bool:
         """ Verifies the provided chain (True or False) """
         for (block_index, block) in enumerate(chain):
 
@@ -30,3 +25,6 @@ class BlockchainVerifier(Verifier):
                 return False
 
         return True
+
+
+

@@ -1,5 +1,6 @@
 # Blockchain
-storage.*
+storage.txt
+wallet.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -139,3 +140,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# VSCode
+.vscode/

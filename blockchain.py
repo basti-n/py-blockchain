@@ -1,16 +1,16 @@
-from blc import Blockchain
-from blockchainGui import GUI
-from blockchainStorage import FileStorage
-from blockchainVerifier import BlockchainVerifier
+from core.blc import Blockchain
+from ui.blockchainGui import GUI
+from core.blockchainStorage import FileStorage
+from core.blockchainVerifier import BlockchainVerifier
 
 # Globals
 open_transactions = []
-owner = 'fips'
 participants = set()
-blockchain = Blockchain(FileStorage, owner)
+blockchain = Blockchain(FileStorage)
 
-gui = GUI(blockchain=blockchain, participants=participants,
-          verifier=BlockchainVerifier)
-gui.start()
+if __name__ == '__main__':
+    gui = GUI(blockchain=blockchain, participants=participants,
+              verifier=BlockchainVerifier)
+    gui.start()
 
-print('Done!')
+    print('Done!')

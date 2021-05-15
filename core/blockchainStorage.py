@@ -27,7 +27,7 @@ class FileStorage(Storage):
                     return fallback
 
                 blocks = [blockchainHelpers.block_from_deserialized_block(
-                    block) for block in deserialized_file[0][:-1]]
+                    block) for block in deserialized_file[0]]
                 transactions = [blockchainHelpers.trx_from_deserialized_trx(
                     trx) for trx in deserialized_file[1]]
 

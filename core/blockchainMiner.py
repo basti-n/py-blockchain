@@ -21,7 +21,7 @@ def get_mined_block(chain: List[Block], open_tx: List[Transaction], owner: str) 
 
     add_reward_transaction(owner, open_tx)
 
-    index = len(open_tx)
+    index = len(chain)
     block = Block(hashed_block, index, open_tx.copy(), proof)
 
     chain.append(block)

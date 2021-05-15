@@ -1,8 +1,9 @@
 from core.blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
-from core.blockchainTx import ask_for_tx, verify_transactions, get_balance
+from core.blockchainTx import ask_for_tx
 from core.blockchainVerifier import Verifier
-from utils.blockchainHelpers import manipulate_chain
+from core.transactionVerifier import TransactionVerifier
+from utils.blockchainHelpers import get_balance, manipulate_chain
 from utils.blockchainOutput import printDependingOn
 from utils.blockchainLogger import print_blocks, print_participants
 from typing import Set
@@ -38,7 +39,7 @@ class GUI(metaclass=SingletonMeta):
                 print_blocks(self.blockchain.blockchain)
 
             elif command == 5:
-                transactions_verified = verify_transactions(
+                transactions_verified = TransactionVerifier.verify_transactions(
                     self.blockchain.blockchain, self.blockchain.open_transactions)
                 printDependingOn(
                     transactions_verified, 'All transactions are valid', 'Invalid transaction found!')

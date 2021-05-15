@@ -1,27 +1,9 @@
 import core.blockchainConstants as blockchainConstants
 from core.models.transaction import Transaction
-from core.transactionVerifier import TransactionVerifier
 from utils.blockchainErrorHandler import ErrorHandler
 from utils.blockchainLogger import warn_invalid_tx
+from core.transactionVerifier import TransactionVerifier
 from typing import Union, List, Tuple
-import functools
-
-
-def verify_transaction(tx: Transaction, chain: list, open_transactions: List[Transaction]) -> bool:
-    """ Checks whether sufficient funds for the transaction are present """
-    if(Transaction.is_root_sender(tx.sender)):
-        return True
-
-    balance_sender = get_balance(tx.sender, chain, open_transactions)
-    return balance_sender >= tx.amount
-
-
-def verify_transactions(chain: list, open_transactions: List[Transaction]) -> bool:
-    """ Checks all transactions for valid funds """
-    balances = [get_balance(participant, chain, open_transactions)
-                for participant in get_participants_from_transactions(open_transactions)]
-
-    return all([balance > 0 for balance in balances])
 
 
 def append_transaction(sender: str, recipient: str, value=1.0, *, signature: str = '', chain: list = [], open_tx=[], participants: set = set()) -> List[Transaction]:
@@ -38,9 +20,8 @@ def append_transaction(sender: str, recipient: str, value=1.0, *, signature: str
     """
 
     tx = get_tx_data(sender, recipient, signature, value)
-    is_verified = TransactionVerifier.is_verified(tx)
 
-    if is_verified and verify_transaction(tx, chain, open_tx):
+    if TransactionVerifier.verify_funds(tx, chain, open_tx) and TransactionVerifier.is_verified(tx):
         open_tx.append(tx)
         participants.add(recipient)
         participants.add(sender)
@@ -82,31 +63,4 @@ def clear_transactions(open_transactions: list) -> None:
     open_transactions.clear()
 
 
-def get_balance(participant: str, chain: list, open_transactions: List[Transaction] = []) -> float:
-    tx_amounts_received = [[tx.amount for tx in block.transactions if tx.recipient ==
-                            participant] for block in chain]
 
-    tx_amounts_sent = [[tx.amount for tx in block.transactions if tx.sender ==
-                        participant] for block in chain]
-
-    if len(open_transactions):
-        tx_amounts_sent.append([
-            tx.amount for tx in open_transactions if tx.sender == participant])
-        tx_amounts_received.append([
-            tx.amount for tx in open_transactions if tx.recipient == participant])
-
-    amount_received = calculate_balance(tx_amounts_received)
-    amount_sent = calculate_balance(tx_amounts_sent)
-
-    return amount_received - amount_sent
-
-
-def calculate_balance(amounts: List[tuple]) -> float:
-    """ Calculates the sum for the provided amounts """
-    return functools.reduce(lambda acc, curr: acc +
-                            (sum(curr) if len(curr) else 0), amounts, 0)
-
-
-def get_participants_from_transactions(transactions: List[Transaction]) -> List[str]:
-    return list(set([tx.sender for tx in transactions] +
-                    [tx.recipient for tx in transactions]))

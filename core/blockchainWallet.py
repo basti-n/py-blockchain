@@ -31,7 +31,8 @@ class Wallet:
                 self.__bits, Crypto.Random.new().read)
             public_key = private_key.publickey()
 
-            return (self.__to_ascii(private_key), self.__to_ascii(public_key))
+            return (Wallet.to_ascii(private_key), Wallet.to_ascii(public_key))
+
         except Exception as error:
             print('Error generating keys (Message: {})'.format(error))
             return ()
@@ -63,7 +64,8 @@ class Wallet:
         hashed_tx = Wallet.hash_transaction(sender, recipient, amount)
         return BinaryConverter.to_ascii(signer.sign(hashed_tx))
 
-    def __to_ascii(self, key) -> str:
+    @classmethod
+    def to_ascii(cls, key) -> str:
         return BinaryConverter.to_ascii(key.exportKey(format='DER'))
 
     @classmethod

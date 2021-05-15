@@ -14,6 +14,7 @@ def createHashedBlock(block: blockchainConstants.Block) -> str:
 
 
 def valid_proof(txs: List[blockchainTx.Transaction], previous_hash: str, proof: int) -> bool:
+    """ Validates the provided proof """
     guess = (str(txs) +
              str(previous_hash) + str(proof)).encode()
     guess_hash = hashlib.sha256(guess).hexdigest()

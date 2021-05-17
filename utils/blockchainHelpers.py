@@ -51,7 +51,7 @@ def serialize_block(block: Block) -> bytes:
 
 def stringify_block(block: Block) -> str:
     """ Returns a stringified Block """
-    return serialize_block(block).decode()
+    return BlockEncoder(sort_keys=True).encode(block)
 
 
 def get_last_blockchain_value(blockchain: List[Block]) -> Union[None, list]:

@@ -2,12 +2,12 @@ from blockchain import *
 from flask import Flask
 from flask_cors import CORS
 from server.responseHelpers import jsonify_chain
+from core.blockchainFactory import BlockchainFileStorageFactory
 
 app = Flask(__name__)
 CORS(app)
 
-# TODO: Refactor: Create factory for blockchain
-blockchain = Blockchain(FileStorage)
+blockchain = Blockchain(BlockchainFileStorageFactory)
 
 host = '0.0.0.0'
 port = 5000

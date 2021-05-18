@@ -1,17 +1,18 @@
-from typing import Type, List
+from typing import List, Type
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
-from core.blockchainStorage import Storage
 from core.blockchainTx import append_transaction
 from core.blockchainWallet import Wallet
+from core.blockchainFactory import BlockchainFactory
 
 
 class Blockchain:
-    def __init__(self, storage: Type[Storage]) -> None:
-        self.storage = storage()
-        self.wallet = None
-        self.owner = None
+    def __init__(self, factory: Type[BlockchainFactory]) -> None:
+        factory_instance = factory()
+        self.storage = factory_instance.get_storage()
+        self.wallet = factory_instance.get_wallet()
+        self.owner = factory_instance.get_owner()
         self.__initialize()
         pass
 

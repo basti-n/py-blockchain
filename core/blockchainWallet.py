@@ -53,9 +53,10 @@ class Wallet:
         else:
             warn_no_key(StorageAction.SAVING)
 
-    def create_keys(self) -> None:
+    def create_keys(self) -> Tuple[str, str]:
         """ Creates and sets private and public key """
         self.__private_key, self.__public_key = self.generate_keys()
+        return self.__private_key, self.__public_key
 
     def create_signature(self, sender: str, recipient: str, amount: int) -> str:
         """ Signs and returns a stringified version of the hashed transaction """

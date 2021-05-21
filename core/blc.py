@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List, Tuple, Type
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
@@ -59,13 +59,14 @@ class Blockchain:
             warn_no_wallet('adding transaction')
             return False
 
-    def create_wallet(self) -> None:
+    def create_wallet(self) -> Tuple[str, str]:
         """ Sets private key and owner (public key) """
         if self.wallet == None:
             self.wallet = Wallet()
 
-        self.wallet.create_keys()
-        self.owner = self.wallet.public_key
+        private_key, public_key = self.wallet.create_keys()
+        self.owner = public_key
+        return private_key, public_key
 
     def save_wallet(self) -> bool:
         if not self.has_wallet:

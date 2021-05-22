@@ -1,6 +1,7 @@
 from core.blockchainConstants import Block
-from typing import List
+from typing import List, Union
 from flask.json import jsonify
+from server.models.statusCodes import HttpStatusCodes
 
 
 def jsonify_chain(chain: List[Block]):
@@ -14,3 +15,22 @@ def stringify_blocks(chain: List[Block]) -> str:
     for block in stringified_blocks:
         block['transactions'] = [tx.__dict__ for tx in block['transactions']]
     return stringified_blocks
+
+
+def get_message(type: HttpStatusCodes, is_success: bool, subject: str, *, additional_info: Union[str, None] = None) -> str:
+    verb = get_verb_for_message(type)
+    result = 'succeeded' if is_success else 'failed'
+    additional_info = f' ({additional_info})' if additional_info and len(additional_info) else ''
+    return f'[{type}] {verb} {subject} {result}{additional_info}'
+
+
+def get_verb_for_message(type: HttpStatusCodes) -> str:
+    if type == HttpStatusCodes.PUT:
+        return 'updating'
+    if type == HttpStatusCodes.POST:
+        return 'creating'
+    if type == HttpStatusCodes.GET:
+        return 'getting'
+
+    print('Warning: Unknown status code ({}) received!'.format(type))
+    return 'unknown operation'

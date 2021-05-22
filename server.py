@@ -2,7 +2,8 @@ from server.response import Response
 from blockchain import *
 from flask import Flask
 from flask_cors import CORS
-from server.responseHelpers import jsonify_chain, stringify_blocks
+from server.responseHelpers import get_message, jsonify_chain, stringify_blocks
+from server.models.statusCodes import HttpStatusCodes
 from core.blockchainFactory import BlockchainFileStorageFactory
 
 app = Flask(__name__)
@@ -14,12 +15,12 @@ host = '0.0.0.0'
 port = 5000
 
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=[HttpStatusCodes.GET])
 def get_ui():
     return '<h1>Blockchain Server</h1><p>Welcome to the server!</p>'
 
 
-@app.route('/wallet', methods=['POST'])
+@app.route('/wallet', methods=[HttpStatusCodes.POST])
 def create_wallet():
     public_key, private_key = blockchain.create_wallet()
     saved = False
@@ -32,25 +33,36 @@ def create_wallet():
             error = True
 
     success = saved is True and error is False
-    message = 'Success: [Post] creating wallet succeeded' if success else 'Error: [Post] creating wallet failed'
+    message = get_message(HttpStatusCodes.POST, success, 'wallet')
     status = 201 if success else 500
     return Response({'public_key': public_key, 'private_key': private_key, 'savedWallet': saved}, message, status).get()
 
 
-@app.route('/chain', methods=['GET'])
+@app.route('/wallet', methods=[HttpStatusCodes.GET])
+def load_wallet():
+    blockchain.load_wallet()
+    if blockchain.owner != None:
+        message = get_message(HttpStatusCodes.GET, True, 'wallet')
+        return Response({'public_key': blockchain.owner, 'savedWallet': True}, message, 200).get()
+
+    message = get_message(HttpStatusCodes.GET, False, 'wallet')
+    return Response({'public_key': blockchain.owner, 'savedWallet': False}, message, 500).get()
+
+
+@app.route('/chain', methods=[HttpStatusCodes.GET])
 def get_chain():
     chain_snapshot = blockchain.blockchain
     return jsonify_chain(chain_snapshot), 200
 
 
-@app.route('/mine', methods=['POST'])
+@app.route('/mine', methods=[HttpStatusCodes.POST])
 def mine():
     try:
         miningSuccessful = blockchain.mine()
         chain_snapshot = blockchain.blockchain
-        return Response({'blockchain': stringify_blocks(chain_snapshot)}, 'Success: [Post] mining succeeded', 200).get() if miningSuccessful else Response({'error': True}, 'Error: [Post] mining failed', 400).get()
+        return Response({'blockchain': stringify_blocks(chain_snapshot)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
     except Exception as error:
-        message = 'Error: [POST] minining failed (Message; {}'.format(error)
+        message = get_message(HttpStatusCodes.POST, False, 'block', error)
         return Response({}, message, 500).get()
 
 

@@ -1,9 +1,10 @@
 from server.response import Response
 from blockchain import *
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from server.responseHelpers import get_message, jsonify_chain, stringify_blocks
 from server.models.statusCodes import HttpStatusCodes
+from server.requestHelpers import get_param
 from core.blockchainFactory import BlockchainFileStorageFactory
 
 app = Flask(__name__)
@@ -22,17 +23,22 @@ def get_ui():
 
 @app.route('/wallet', methods=[HttpStatusCodes.POST])
 def create_wallet():
-    public_key, private_key = blockchain.create_wallet()
     saved = False
     error = False
-    # Todo: get data from params to also save
-    if(True):
+
+    try:
+        public_key, private_key = blockchain.create_wallet()
+    except:
+        error = True
+
+    should_save = get_param(request, 'save')
+    if(should_save and not error):
         try:
             saved = blockchain.save_wallet()
         except:
             error = True
 
-    success = saved is True and error is False
+    success = error is False
     message = get_message(HttpStatusCodes.POST, success, 'wallet')
     status = 201 if success else 500
     return Response({'public_key': public_key, 'private_key': private_key, 'savedWallet': saved}, message, status).get()

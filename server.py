@@ -2,7 +2,7 @@ from server.response import Response
 from blockchain import *
 from flask import Flask, request
 from flask_cors import CORS
-from server.responseHelpers import get_message, jsonify_chain, stringify_blocks
+from server.responseHelpers import get_message, jsonify_chain, stringify_block
 from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
 from core.blockchainFactory import BlockchainFileStorageFactory
@@ -65,8 +65,8 @@ def get_chain():
 def mine():
     try:
         miningSuccessful = blockchain.mine()
-        chain_snapshot = blockchain.blockchain
-        return Response({'blockchain': stringify_blocks(chain_snapshot)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
+        created_block = blockchain.latest_block
+        return Response({'block': stringify_block(created_block)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
     except Exception as error:
         message = get_message(HttpStatusCodes.POST, False, 'block', error)
         return Response({}, message, 500).get()

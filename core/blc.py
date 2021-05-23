@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type
+from typing import List, Tuple, Type, Union
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
@@ -20,6 +20,10 @@ class Blockchain:
     def blockchain(self):
         return self.__blockchain
 
+    @property
+    def latest_block(self):
+        return self.__latest_block
+
     @blockchain.setter
     def blockchain(self, blockchain: List[Block]) -> None:
         self.__blockchain = blockchain
@@ -39,7 +43,7 @@ class Blockchain:
     def mine(self) -> bool:
         """ Mines a block and saves the blockchain and open transactions """
         if self.has_wallet:
-            self.__blockchain, self.__open_transactions = get_mined_block(
+            self.__blockchain, self.__open_transactions, self.__latest_block = get_mined_block(
                 self.__blockchain, self.__open_transactions, self.owner)
             return self.__save()
         else:

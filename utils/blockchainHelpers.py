@@ -54,7 +54,7 @@ def stringify_block(block: Block) -> str:
     return BlockEncoder(sort_keys=True).encode(block)
 
 
-def get_last_blockchain_value(blockchain: List[Block]) -> Union[None, list]:
+def get_last_blockchain_value(blockchain: List[Block]) -> Union[None, Block]:
     """ Returns the latest value of the blockchain (default [1]) """
     if len(blockchain):
         return blockchain[-1]

@@ -1,4 +1,5 @@
 from typing import List, Tuple, Type, Union
+from utils.blockchainHelpers import get_balance
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
@@ -23,6 +24,10 @@ class Blockchain:
     @property
     def latest_block(self):
         return self.__latest_block
+
+    @property
+    def balance(self):
+        return get_balance(self.owner, self.blockchain, self.open_transactions)
 
     @blockchain.setter
     def blockchain(self, blockchain: List[Block]) -> None:

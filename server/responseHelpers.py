@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 from core.models.transaction import Transaction
 from core.blockchainConstants import Block
 from flask.json import jsonify
@@ -7,25 +7,24 @@ from server.models.statusCodes import HttpStatusCodes
 
 def jsonify_chain(chain: List[Block]):
     """ Returns the chain as jsonfied Response """
-    return jsonify(stringify_blocks(chain))
+    return jsonify(get_serializable_blocks(chain))
 
 
-# TODO: Fix return type of stringify functions
-def stringify_blocks(chain: List[Block]) -> str:
-    """ Returns the chain as JSON """
-    return [stringify_block(block) for block in chain]
+def get_serializable_blocks(chain: List[Block]) -> List[Dict[str, Any]]:
+    """ Returns the chain as JSON serializable dictionary """
+    return [get_serializable_block(block) for block in chain]
 
 
-def stringify_block(block: Block) -> str:
-    """ Returns the block as JSON """
+def get_serializable_block(block: Block) -> Dict[str, Any]:
+    """ Returns the block as JSON serializabledictionary """
     base_block = block.__dict__.copy()
-    base_block['transactions'] = [stringify_transaction(tx)
+    base_block['transactions'] = [get_serializable_transaction(tx)
                                   for tx in base_block['transactions']]
     return base_block
 
 
-def stringify_transaction(tx: Transaction) -> str:
-    """ Returns the transaction as JSON """
+def get_serializable_transaction(tx: Transaction) -> Dict[str, Any]:
+    """ Returns the transaction as JSON serializable dictionary """
     return tx.__dict__.copy()
 
 

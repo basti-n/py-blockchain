@@ -3,7 +3,7 @@ from server.response import Response
 from blockchain import *
 from flask import Flask, request
 from flask_cors import CORS
-from server.responseHelpers import get_message, get_missing_fields, has_all_required_fields, jsonify_chain, stringify_block, stringify_transaction
+from server.responseHelpers import get_message, get_missing_fields, get_serializable_block, get_serializable_transaction, has_all_required_fields, jsonify_chain
 from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
 from core.blockchainFactory import BlockchainFileStorageFactory
@@ -44,7 +44,7 @@ def add_transaction():
         return Response({'transaction': None, 'missing_fields': None}, message, 500).get()
 
     message = get_message(HttpStatusCodes.POST, True, 'transaction')
-    return Response({'transaction': stringify_transaction(blockchain.latest_transaction), 'missing_fields': None}, message, 200).get()
+    return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None}, message, 200).get()
 
 
 @ app.route('/transactions', methods=[HttpStatusCodes.GET])
@@ -107,7 +107,7 @@ def mine():
     try:
         miningSuccessful = blockchain.mine()
         created_block = blockchain.latest_block
-        return Response({'block': stringify_block(created_block)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
+        return Response({'block': get_serializable_block(created_block)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
     except Exception as error:
         message = get_message(HttpStatusCodes.POST, False, 'block', error)
         return Response({}, message, 500).get()

@@ -3,7 +3,7 @@ from utils.blockchainHelpers import get_balance
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
-from core.blockchainTx import append_transaction
+from core.blockchainTx import append_transaction, get_latest_transaction
 from core.blockchainWallet import Wallet
 from core.blockchainFactory import BlockchainFactory
 
@@ -24,6 +24,10 @@ class Blockchain:
     @property
     def latest_block(self):
         return self.__latest_block
+
+    @property
+    def latest_transaction(self):
+        return get_latest_transaction(self.__open_transactions)
 
     @property
     def balance(self):

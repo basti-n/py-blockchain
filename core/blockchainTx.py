@@ -62,3 +62,10 @@ def get_tx_data(sender: str, recipient: str, signature: str, value: float = 1.0)
 def clear_transactions(open_transactions: list) -> None:
     """ Removes all open transactions """
     open_transactions.clear()
+
+
+def get_latest_transaction(transactions: List[Transaction]) -> Union[None, Transaction]:
+    """ Returns the latest transaction """
+    if len(transactions) < 1:
+        return None
+    return transactions[-1]

@@ -1,8 +1,9 @@
+from typing import Dict, Union
 from server.response import Response
 from blockchain import *
 from flask import Flask, request
 from flask_cors import CORS
-from server.responseHelpers import get_message, jsonify_chain, stringify_block
+from server.responseHelpers import get_message, get_missing_fields, has_all_required_fields, jsonify_chain, stringify_block, stringify_transaction
 from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
 from core.blockchainFactory import BlockchainFileStorageFactory
@@ -21,13 +22,43 @@ def get_ui():
     return '<h1>Blockchain Server</h1><p>Welcome to the server!</p>'
 
 
-@app.route('/wallet', methods=[HttpStatusCodes.POST])
+@app.route('/transaction', methods=[HttpStatusCodes.POST])
+def add_transaction():
+    if not blockchain.has_wallet:
+        message = get_message(HttpStatusCodes.POST, False,
+                              'transaction', additional_info='No Wallet found!')
+        return Response({'transaction': None}, message, 500).get()
+
+    transaction_data: Union(Dict, None) = request.get_json()
+    required_fields = ['sender', 'recipient', 'amount']
+    if not has_all_required_fields(transaction_data, required_fields):
+        missing_fields = get_missing_fields(transaction_data, required_fields)
+        missing_fields_stringified = ', '.join(missing_fields)
+        message = get_message(HttpStatusCodes.POST, False,
+                              'transaction', additional_info=f'Please Provide complete transaction. Missing Fields: {missing_fields_stringified}')
+        return Response({'transaction': None, 'missing_fields': missing_fields}, message, 400).get()
+
+    add_transaction_success = blockchain.add_transaction(**transaction_data)
+    if not add_transaction_success:
+        message = get_message(HttpStatusCodes.POST, False, 'transaction')
+        return Response({'transaction': None, 'missing_fields': None}, message, 500).get()
+
+    message = get_message(HttpStatusCodes.POST, True, 'transaction')
+    return Response({'transaction': stringify_transaction(blockchain.latest_transaction), 'missing_fields': None}, message, 200).get()
+
+
+@ app.route('/transactions', methods=[HttpStatusCodes.GET])
+def get_open_transactions():
+    pass
+
+
+@ app.route('/wallet', methods=[HttpStatusCodes.POST])
 def create_wallet():
     saved = False
     error = False
 
     try:
-        public_key, private_key = blockchain.create_wallet()
+        _, private_key = blockchain.create_wallet()
     except:
         error = True
 
@@ -41,13 +72,13 @@ def create_wallet():
     success = error is False
     message = get_message(HttpStatusCodes.POST, success, 'wallet')
     status = 201 if success else 500
-    return Response({'public_key': public_key, 'private_key': private_key, 'savedWallet': saved}, message, status).get()
+    return Response({'public_key': blockchain.owner, 'private_key': private_key, 'savedWallet': saved}, message, status).get()
 
 
-@app.route('/wallet', methods=[HttpStatusCodes.GET])
+@ app.route('/wallet', methods=[HttpStatusCodes.GET])
 def load_wallet():
     blockchain.load_wallet()
-    if blockchain.owner != None:
+    if blockchain.has_wallet:
         message = get_message(HttpStatusCodes.GET, True, 'wallet')
         return Response({'public_key': blockchain.owner, 'savedWallet': True}, message, 200).get()
 
@@ -55,13 +86,23 @@ def load_wallet():
     return Response({'public_key': blockchain.owner, 'savedWallet': False}, message, 500).get()
 
 
-@app.route('/chain', methods=[HttpStatusCodes.GET])
+@ app.route('/balance', methods=[HttpStatusCodes.GET])
+def get_balance():
+    if not blockchain.has_wallet:
+        message = get_message(HttpStatusCodes.GET, False, 'balance')
+        return Response({'funds': 0, 'hasOwner': False}, message, 500).get()
+
+    message = message = get_message(HttpStatusCodes.GET, True, 'balance')
+    return Response({'funds': blockchain.balance, 'hasOwner': True}, message, 200).get()
+
+
+@ app.route('/chain', methods=[HttpStatusCodes.GET])
 def get_chain():
     chain_snapshot = blockchain.blockchain
     return jsonify_chain(chain_snapshot), 200
 
 
-@app.route('/mine', methods=[HttpStatusCodes.POST])
+@ app.route('/mine', methods=[HttpStatusCodes.POST])
 def mine():
     try:
         miningSuccessful = blockchain.mine()

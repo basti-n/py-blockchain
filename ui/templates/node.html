@@ -328,8 +328,11 @@
                     },
                 },
                 methods: {
-                    setIsLoading(isLoading) {
+                    setIsLoading: function (isLoading) {
                         this.isLoading = isLoading;
+                    },
+                    resetForm: function () {
+                        this.outgoingTx = { amount: 0, recipient: '' };
                     },
                     onCreateWallet: async function () {
                         this.setIsLoading(true);
@@ -385,18 +388,24 @@
                             this.error =
                                 error.data?.message ?? this.defaultError;
                         } finally {
-                            this.outgoingTx = { amount: 0, recipient: '' };
+                            this.resetForm();
                             this.setIsLoading(false);
                         }
                     },
-                    onMine: function () {
-                        if (Math.random() > 0.5) {
+                    onMine: async function () {
+                        this.setIsLoading(true);
+
+                        try {
+                            const { data } = await axios.post('/mine');
                             this.error = null;
-                            this.success = 'Successfully mined coins!';
-                            this.funds = this.funds + 10;
-                        } else {
+                            this.success = data.message;
+                            this.funds = await this.fetchBalance();
+                        } catch (error) {
                             this.success = null;
-                            this.error = 'Something went wrong!';
+                            this.error =
+                                error.data?.message ?? this.defaultError;
+                        } finally {
+                            this.setIsLoading(false);
                         }
                     },
                     onLoadData: async function () {

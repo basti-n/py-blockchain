@@ -1,7 +1,7 @@
 from typing import Dict, Union
 from server.response import Response
 from blockchain import *
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 from server.responseHelpers import get_message, get_missing_fields, get_serializable_block, get_serializable_transaction, has_all_required_fields, jsonify_chain
 from server.models.statusCodes import HttpStatusCodes
@@ -19,7 +19,7 @@ port = 5000
 
 @app.route('/', methods=[HttpStatusCodes.GET])
 def get_ui():
-    return '<h1>Blockchain Server</h1><p>Welcome to the server!</p>'
+    return send_from_directory('ui/templates', 'node.html')
 
 
 @app.route('/transaction', methods=[HttpStatusCodes.POST])

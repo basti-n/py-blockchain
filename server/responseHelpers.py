@@ -18,13 +18,16 @@ def get_serializable_blocks(chain: List[Block]) -> List[Dict[str, Any]]:
 def get_serializable_block(block: Block) -> Dict[str, Any]:
     """ Returns the block as JSON serializabledictionary """
     base_block = block.__dict__.copy()
-    base_block['transactions'] = [get_serializable_transaction(tx)
-                                  for tx in base_block['transactions']]
+    base_block['transactions'] = get_serializable_transaction(
+        base_block['transactions'])
+
     return base_block
 
 
-def get_serializable_transaction(tx: Transaction) -> Dict[str, Any]:
+def get_serializable_transaction(tx: Union[Transaction, List[Transaction]]) -> Dict[str, Any]:
     """ Returns the transaction as JSON serializable dictionary """
+    if type(tx) is list:
+        return [get_serializable_transaction(transaction) for transaction in tx]
     return tx.__dict__.copy()
 
 

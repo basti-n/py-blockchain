@@ -49,7 +49,13 @@ def add_transaction():
 
 @ app.route('/transactions', methods=[HttpStatusCodes.GET])
 def get_open_transactions():
-    pass
+    if not blockchain.has_wallet:
+        message = get_message(HttpStatusCodes.GET, False,
+                              'open transaction', additional_info='No Wallet found!')
+        return Response({'open_transactions': None}, message, 500).get()
+
+    message = get_message(HttpStatusCodes.GET, True, 'open transaction', )
+    return Response({'open_transactions': get_serializable_transaction(blockchain.open_transactions)}, message, 200).get()
 
 
 @ app.route('/wallet', methods=[HttpStatusCodes.POST])

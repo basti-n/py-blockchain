@@ -176,6 +176,7 @@
                 <div class="row my-3">
                     <div class="col">
                         <button class="btn btn-primary" @click="onLoadData">
+                            <!-- prettier-ignore-->
                             {{ view === 'chain' ? 'Load Blockchain' : 'Load Transactions' }}
                         </button>
                         <button
@@ -366,15 +367,26 @@
                             this.setIsLoading(false);
                         }
                     },
-                    onSendTx: function () {
-                        // Send Transaction to backend
-                        if (Math.random() > 0.5) {
+                    onSendTx: async function () {
+                        this.setIsLoading(true);
+                        try {
+                            const sender = this.wallet.public_key;
+                            const { amount, recipient } = this.outgoingTx;
+                            const { data } = await axios.post('/transaction', {
+                                sender,
+                                recipient,
+                                amount,
+                            });
                             this.error = null;
-                            this.success = 'Successfully stored transaction!';
-                            this.funds = this.funds - this.outgoingTx.amount;
-                        } else {
+                            this.success = data.message;
+                            this.funds = await this.fetchBalance();
+                        } catch (error) {
                             this.success = null;
-                            this.error = 'Something went wrong!';
+                            this.error =
+                                error.data?.message ?? this.defaultError;
+                        } finally {
+                            this.outgoingTx = { amount: 0, recipient: '' };
+                            this.setIsLoading(false);
                         }
                     },
                     onMine: function () {
@@ -415,6 +427,17 @@
                             } finally {
                                 this.setIsLoading(false);
                             }
+                        }
+                    },
+                    fetchBalance: async function () {
+                        try {
+                            const { data } = await axios.get('/balance');
+                            return data.funds;
+                        } catch (error) {
+                            this.success = null;
+                            this.error =
+                                error.data?.message ?? this.defaultError;
+                            return 0;
                         }
                     },
                 },

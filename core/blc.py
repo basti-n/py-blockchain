@@ -1,23 +1,37 @@
-from typing import Type, List
+from typing import List, Tuple, Type, Union
+from utils.blockchainHelpers import get_balance
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
-from core.blockchainStorage import Storage
-from core.blockchainTx import append_transaction
+from core.blockchainTx import append_transaction, get_latest_transaction
 from core.blockchainWallet import Wallet
+from core.blockchainFactory import BlockchainFactory
 
 
 class Blockchain:
-    def __init__(self, storage: Type[Storage]) -> None:
-        self.storage = storage()
-        self.wallet = None
-        self.owner = None
+    def __init__(self, factory: Type[BlockchainFactory]) -> None:
+        factory_instance = factory()
+        self.storage = factory_instance.get_storage()
+        self.wallet = factory_instance.get_wallet()
+        self.owner = factory_instance.get_owner()
         self.__initialize()
         pass
 
     @property
     def blockchain(self):
         return self.__blockchain
+
+    @property
+    def latest_block(self):
+        return self.__latest_block
+
+    @property
+    def latest_transaction(self):
+        return get_latest_transaction(self.__open_transactions)
+
+    @property
+    def balance(self):
+        return get_balance(self.owner, self.blockchain, self.open_transactions)
 
     @blockchain.setter
     def blockchain(self, blockchain: List[Block]) -> None:
@@ -38,7 +52,7 @@ class Blockchain:
     def mine(self) -> bool:
         """ Mines a block and saves the blockchain and open transactions """
         if self.has_wallet:
-            self.__blockchain, self.__open_transactions = get_mined_block(
+            self.__blockchain, self.__open_transactions, self.__latest_block = get_mined_block(
                 self.__blockchain, self.__open_transactions, self.owner)
             return self.__save()
         else:
@@ -58,13 +72,14 @@ class Blockchain:
             warn_no_wallet('adding transaction')
             return False
 
-    def create_wallet(self) -> None:
+    def create_wallet(self) -> Tuple[str, str]:
         """ Sets private key and owner (public key) """
         if self.wallet == None:
             self.wallet = Wallet()
 
-        self.wallet.create_keys()
-        self.owner = self.wallet.public_key
+        private_key, public_key = self.wallet.create_keys()
+        self.owner = public_key
+        return private_key, public_key
 
     def save_wallet(self) -> bool:
         if not self.has_wallet:

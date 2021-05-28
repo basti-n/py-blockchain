@@ -1,0 +1,36 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-64
+autopep8==1.5.7
+# ca-certificates==2021.4.13
+certifi==2020.12.5
+click==8.0.1
+flask==1.1.2
+flask-cors==3.0.10
+# gmp==6.2.1
+gunicorn==20.1.0
+importlib-metadata==3.10.0
+itsdangerous==2.0.1
+jinja2==3.0.0
+# libcxx==10.0.0==1
+# libffi==3.3
+markupsafe==2.0.1
+# ncurses==6.2
+# openssl==1.1.1
+pep517==0.10.0
+pip==21.0.1
+pycodestyle==2.7.0
+pycryptodome==3.10.1
+# python==3.9.4
+# readline==8.1
+setuptools==52.0.0
+six==1.15.0
+# sqlite==3.35.4
+# tk==8.6.10
+toml==0.10.2
+# tzdata==2020f
+werkzeug==1.0.1
+wheel==0.36.2
+# xz==5.2.5
+zipp==3.4.1
+# zlib==1.2.11

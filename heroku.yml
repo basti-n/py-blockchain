@@ -1,0 +1,5 @@
+build:
+  docker:
+    web: Heroku.Dockerfile
+run:
+  web: gunicorn server:app --bind 0.0.0.0:$PORT 

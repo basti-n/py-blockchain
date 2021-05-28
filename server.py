@@ -1,3 +1,4 @@
+import os
 from typing import Dict, Union
 from server.response import Response
 from blockchain import *
@@ -14,7 +15,7 @@ CORS(app)
 blockchain = Blockchain(BlockchainFileStorageFactory)
 
 host = '0.0.0.0'
-port = 5000
+port = int(os.environ.get('PORT', 5000))
 
 
 @app.route('/', methods=[HttpStatusCodes.GET])
@@ -119,5 +120,6 @@ def mine():
         return Response({}, message, 500).get()
 
 
+print('Starting Server...')
 if __name__ == '__main__':
-    app.run(host, port)
+    app.run(host, port, debug=True)

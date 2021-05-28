@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Set, Union
 from core.models.transaction import Transaction
 from core.blockchainConstants import Block
 from flask.json import jsonify
@@ -31,6 +31,11 @@ def get_serializable_transaction(tx: Union[Transaction, List[Transaction]]) -> D
     return tx.__dict__.copy()
 
 
+def get_serializable_peer_nodes(nodes: Set[str]) -> List[str]:
+    """ Returns the nodes as a JSON serializable list """
+    return list(nodes)
+
+
 def get_message(type: HttpStatusCodes, is_success: bool, subject: str, *, additional_info: Union[str, None] = None) -> str:
     verb = get_verb_for_message(type)
     result = 'succeeded' if is_success else 'failed'
@@ -46,6 +51,8 @@ def get_verb_for_message(type: HttpStatusCodes) -> str:
         return 'creating'
     if type == HttpStatusCodes.GET:
         return 'getting'
+    if type == HttpStatusCodes.DELETE:
+        return 'deleting'
 
     print('Warning: Unknown status code ({}) received!'.format(type))
     return 'unknown operation'

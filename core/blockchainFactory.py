@@ -1,7 +1,7 @@
 from core.blockchainStorage import FileStorage
 from core.blockchainWallet import Wallet
 from core.models.storage import Storage
-from typing import Union
+from typing import Set, Union
 
 
 class BlockchainFactory:
@@ -10,6 +10,9 @@ class BlockchainFactory:
 
     def get_owner(self) -> Union[str, None]:
         return None
+
+    def get_peer_nodes(self, use_default=True) -> Union[Set[str], None]:
+        return set() if use_default else None
 
     def get_storage(self, path: Union[str, None] = None) -> Union[Storage, None]:
         return None

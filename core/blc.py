@@ -14,6 +14,7 @@ class Blockchain:
         self.storage = factory_instance.get_storage()
         self.wallet = factory_instance.get_wallet()
         self.owner = factory_instance.get_owner()
+        self.peer_nodes = factory_instance.get_peer_nodes()
         self.__initialize()
         pass
 
@@ -98,14 +99,32 @@ class Blockchain:
         else:
             self.__reset_owner()
 
+    def add_peer_node(self, node: str) -> bool:
+        """ Adds a peer node.
+
+        Arguments:
+            :node: The url of the node to add.
+        """
+        self.peer_nodes.add(node)
+        return self.__save()
+
+    def remove_peer_node(self, node: str) -> bool:
+        """ Deletes a peer node.
+
+        Arguments:
+            :node: The url of the node to remove.
+        """
+        self.peer_nodes.discard(node)
+        return self.__save()
+
     def __initialize(self) -> None:
-        """ Initializes the blockchain and open transactions by using the provided storage """
-        self.__blockchain, self.__open_transactions = self.storage.load()
+        """ Initializes the blockchain, open transactions and peer nodes by using the provided storage """
+        self.__blockchain, self.__open_transactions, self.peer_nodes = self.storage.load()
         if len(self.blockchain) < 1:
             self.blockchain = [GenesisBlock()]
 
     def __save(self) -> bool:
-        return self.storage.save(self.__blockchain, self.__open_transactions)
+        return self.storage.save(self.__blockchain, self.__open_transactions, self.peer_nodes)
 
     def __reset_owner(self) -> None:
         self.owner = None

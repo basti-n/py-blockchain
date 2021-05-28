@@ -4,7 +4,7 @@ from server.response import Response
 from blockchain import *
 from flask import Flask, request, send_from_directory
 from flask_cors import CORS
-from server.responseHelpers import get_message, get_missing_fields, get_serializable_block, get_serializable_transaction, has_all_required_fields, jsonify_chain
+from server.responseHelpers import get_message, get_missing_fields, get_serializable_block, get_serializable_peer_nodes, get_serializable_transaction, has_all_required_fields, jsonify_chain
 from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
 from core.blockchainFactory import BlockchainFileStorageFactory
@@ -118,6 +118,35 @@ def mine():
     except Exception as error:
         message = get_message(HttpStatusCodes.POST, False, 'block', error)
         return Response({}, message, 500).get()
+
+
+@app.route('/node', methods=[HttpStatusCodes.POST])
+def create_node():
+    """ Adds a node to the blockchain peer nodes """
+    body: Dict = request.get_json()
+    node_to_add = body.get('node')
+    if not body or not node_to_add:
+        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, False, 'node', additional_info='Please provide a valid node to add.'), 400).get()
+
+    if blockchain.add_peer_node(node_to_add):
+        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, True, 'node'), 200).get()
+
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, False, 'node', additional_info=f'Saving peer node {node_to_add} failed!'), 400).get()
+
+
+@ app.route('/node', methods=[HttpStatusCodes.DELETE])
+def delete_node():
+    """ Deletes a node from the blockchain peer nodes """
+    body: Dict = request.get_json()
+    node_to_delete = body.get('node')
+    if not body or not node_to_delete:
+        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, False, 'node', additional_info='Please provide a valid node to delete.'), 400).get()
+
+    if not node_to_delete in blockchain.peer_nodes:
+        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, False, 'node', additional_info=f'Delete peer node {node_to_delete} failed. No peer node found!'), 500).get()
+
+    blockchain.remove_peer_node(node_to_delete)
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, True, 'node'), 200).get()
 
 
 print('Starting Server...')

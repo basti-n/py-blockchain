@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from io import TextIOWrapper
 from utils.metaclasses.singletonMeta import SingletonMeta
 from typing import Any
 from enum import Enum
@@ -27,3 +28,6 @@ class Storage(metaclass=SingletonMeta):
 
     def print_error(self, action: StorageAction) -> None:
         print(f'Alert: {action.value.capitalize()} {self.path} failed!')
+
+    def add_line_break(self, file: TextIOWrapper) -> int:
+        return file.write('\n')

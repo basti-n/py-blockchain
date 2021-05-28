@@ -48,7 +48,7 @@ def ask_for_tx() -> Tuple[float, str]:
         try:
             tx_amount = float(input('Your transaction amount: '))
         except ValueError as valueError:
-            ErrorHandler.logValueError(
+            ErrorHandler.logError(
                 valueError, msgPrefix='Invalid input: ', msgPostfix='. Please provide a valid number (e.g. 12)')
     tx_recipient = input('Your transaction recipient: ')
     return tx_amount, tx_recipient

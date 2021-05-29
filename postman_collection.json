@@ -92,6 +92,144 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Get Balance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://0.0.0.0:5000/balance",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"balance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"recipient\": \"Fips\",\n    \"sender\": \"3082025d02010002818100db6a7f4901949b4efda78e2bcc470fe25f78b948efe959444af46b8020abc70bbae2b7f385fd0c880d2b3ca3e8fd55f478e189182d08eea936faa6e3576e374fe8ae3831071b69700ee77df023ac3a2ff86b9bb54765c861c70a514ccac2b47b12512af7da238b6a467071eb72347b46b164019b395fd8df5023a0ef8a85645102030100010281800b0714b8f8c7dd1b1610e6f52e3caa15e0b782bf2189085ab02bb855706441ca45f7cc1d5a05730249807bf93efb5b3d161ae66c3278944a2940656fdffe8d9ab228193328683fe96e8415907d22a5b48a3e08eb7bf610f6d419e22cc0c29ae3ad9a59f747ae0968a24a56a2f41d9c6daa84e10aabbf501bc90a47f79fcaa47b024100dbf3255bef2deddad85efa8712e6d8dd3991057c238ccc502a4cf07cd921eb2fed0f1645f508caa84106951df0ef22b96e89a901c2c39c6e1793e0a2c994410b024100ff60f44b45dae1f406797b23f16d0967fe4b559c133cbece92a53cc088c4801c33e15d5a93b80da999ed73284022bb11498bde7ba2861f6b36402a0f3e490193024100cef7e48eb6e94c29a372f461c82a8ba4d8379ba6adb91ec4cc992baeff8f084547d7eb8896c3d8172d61294e4c5a6a1d7d63723262f838a9ebebcdf4c0a48df3024027ac23275269c772465336eb05855fd1b4f2751132f7dbd8717593f3810badaf33ec0db9957b213c38ba678a58344d05497c9e0a6cdc13236fa116279a10735b0241009f7667efa07aa0e2123c14bf06684f114858a04c69f493d48b22fc3c2f611c4bba3a90033e8f59efb66c162ad1a475cf77674a9bc9bf1ac66da067d5dc729856\",\n    \"amount\": 15\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://0.0.0.0:5000/transaction",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Open Transactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://0.0.0.0:5000/transactions",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Peer Node",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"node\": \"test-user-{{$timestamp}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://0.0.0.0:5000/node",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"node"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Peer Node",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://0.0.0.0:5000/node/test-user-1622275333",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"node",
+						"test-user-1622275333"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

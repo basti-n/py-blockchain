@@ -134,12 +134,11 @@ def create_node():
     return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, False, 'node', additional_info=f'Saving peer node {node_to_add} failed!'), 400).get()
 
 
-@ app.route('/node', methods=[HttpStatusCodes.DELETE])
-def delete_node():
+@ app.route('/node/<path:peer_node>', methods=[HttpStatusCodes.DELETE])
+def delete_node(peer_node: str):
     """ Deletes a node from the blockchain peer nodes """
-    body: Dict = request.get_json()
-    node_to_delete = body.get('node')
-    if not body or not node_to_delete:
+    node_to_delete = peer_node
+    if not len(node_to_delete):
         return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, False, 'node', additional_info='Please provide a valid node to delete.'), 400).get()
 
     if not node_to_delete in blockchain.peer_nodes:

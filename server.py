@@ -19,8 +19,13 @@ port = int(os.environ.get('PORT', 5000))
 
 
 @app.route('/', methods=[HttpStatusCodes.GET])
-def get_ui():
+def get_home():
     return send_from_directory('ui/templates', 'node.html')
+
+
+@app.route('/network', methods=[HttpStatusCodes.GET])
+def get_network():
+    return send_from_directory('ui/templates', 'network.html')
 
 
 @app.route('/transaction', methods=[HttpStatusCodes.POST])
@@ -158,6 +163,6 @@ def get_nodes():
     return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.GET, True, 'node'), 200).get()
 
 
-print('Starting Server...')
 if __name__ == '__main__':
+    print('Starting Server...')
     app.run(host, port, debug=True)

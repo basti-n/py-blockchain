@@ -148,6 +148,16 @@ def delete_node(peer_node: str):
     return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, True, 'node'), 200).get()
 
 
+@app.route('/nodes', methods=[HttpStatusCodes.GET])
+def get_nodes():
+    """ Returns all peer nodes associated with blockchain """
+    all_nodes = blockchain.peer_nodes
+    if all_nodes is None:
+        return Response({'nodes': None}, get_message(HttpStatusCodes.GET, False, 'node'), 500).get()
+
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.GET, True, 'node'), 200).get()
+
+
 print('Starting Server...')
 if __name__ == '__main__':
     app.run(host, port, debug=True)

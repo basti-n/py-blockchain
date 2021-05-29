@@ -230,6 +230,28 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Get Peer Nodes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://0.0.0.0:5000/nodes",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "5000",
+					"path": [
+						"nodes"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

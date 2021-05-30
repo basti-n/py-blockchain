@@ -1,5 +1,6 @@
 import os
 from typing import Dict, Union
+from utils.argumentParser import CommandLineArgumentParser
 from server.response import Response
 from blockchain import *
 from flask import Flask, request, send_from_directory
@@ -165,4 +166,6 @@ def get_nodes():
 
 if __name__ == '__main__':
     print('Starting Server...')
-    app.run(host, port, debug=True)
+    parser = CommandLineArgumentParser(
+        {'port': {'default': port, 'type': int}})
+    app.run(host, parser.arguments.port, debug=True)

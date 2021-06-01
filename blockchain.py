@@ -6,9 +6,9 @@ from core.blockchainFactory import BlockchainFileStorageFactory
 # Globals
 open_transactions = []
 participants = set()
-blockchain = Blockchain(BlockchainFileStorageFactory)
 
 if __name__ == '__main__':
+    blockchain = Blockchain(BlockchainFileStorageFactory)
     gui = GUI(blockchain=blockchain, participants=participants,
               verifier=BlockchainVerifier)
     gui.start()

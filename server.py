@@ -13,8 +13,6 @@ from core.blockchainFactory import BlockchainFileStorageFactory
 app = Flask(__name__)
 CORS(app)
 
-blockchain = Blockchain(BlockchainFileStorageFactory)
-
 host = '0.0.0.0'
 port = int(os.environ.get('PORT', 5000))
 
@@ -165,7 +163,10 @@ def get_nodes():
 
 
 if __name__ == '__main__':
-    print('Starting Server...')
     parser = CommandLineArgumentParser(
         {'port': {'default': port, 'type': int}})
-    app.run(host, parser.arguments.port, debug=True)
+    port = parser.arguments.port
+    blockchain = Blockchain(BlockchainFileStorageFactory, node_id=port)
+    
+    print('Starting Server on PORT {}'.format(port))
+    app.run(host, port, debug=True)

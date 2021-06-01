@@ -352,8 +352,17 @@
                     onCreateWallet: async function () {
                         this.setIsLoading(true);
                         try {
-                            const { data } = await axios.post('/wallet');
+                            const { data } = await axios.post(
+                                '/wallet',
+                                {},
+                                {
+                                    params: {
+                                        save: true,
+                                    },
+                                }
+                            );
                             this.success = data.message;
+                            this.error = null;
                             this.wallet = {
                                 private_key: data.private_key,
                                 public_key: data.public_key,
@@ -373,10 +382,12 @@
                         try {
                             const { data } = await axios.get('/wallet');
                             this.success = data.message;
+                            this.error = null;
                             this.wallet = {
                                 private_key: null,
                                 public_key: data.public_key,
                             };
+                            this.funds = await this.fetchBalance();
                         } catch (error) {
                             this.success = null;
                             this.error =

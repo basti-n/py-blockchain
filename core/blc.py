@@ -1,4 +1,5 @@
-from typing import List, Tuple, Type, Union
+from typing import List, Tuple, Type
+from core.models.storage import Storage
 from utils.blockchainHelpers import get_balance
 from utils.blockchainLogger import warn_no_wallet
 from core.blockchainMiner import get_mined_block
@@ -9,9 +10,11 @@ from core.blockchainFactory import BlockchainFactory
 
 
 class Blockchain:
-    def __init__(self, factory: Type[BlockchainFactory]) -> None:
+    def __init__(self, factory: Type[BlockchainFactory], node_id: str = '__internal__') -> None:
         factory_instance = factory()
-        self.storage = factory_instance.get_storage()
+        self.node_id = node_id
+        self.storage = factory_instance.get_storage(
+            Storage.generate_path(prefix='storage', id=self.node_id))
         self.wallet = factory_instance.get_wallet()
         self.owner = factory_instance.get_owner()
         self.peer_nodes = factory_instance.get_peer_nodes()
@@ -76,7 +79,7 @@ class Blockchain:
     def create_wallet(self) -> Tuple[str, str]:
         """ Sets private key and owner (public key) """
         if self.wallet == None:
-            self.wallet = Wallet()
+            self.wallet = Wallet(node_id=self.node_id)
 
         private_key, public_key = self.wallet.create_keys()
         self.owner = public_key
@@ -92,7 +95,7 @@ class Blockchain:
     def load_wallet(self) -> None:
         """ Loads owner (public key) from storage """
         if self.wallet == None:
-            self.wallet = Wallet()
+            self.wallet = Wallet(node_id=self.node_id)
 
         if self.wallet.load_keys():
             self.owner = self.wallet.public_key

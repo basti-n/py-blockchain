@@ -1,4 +1,9 @@
+from core.blockchainTx import get_latest_transaction
 import os
+from server.models.requiredFields import RequiredFields
+from server.responseGuards import ensure_required_fields, ensure_tx_appended, ensure_wallet
+from server.models.endpoints import BlockchainEndpoints
+from server.txSyncer import TransactionSync
 from typing import Dict, Union
 from utils.argumentParser import CommandLineArgumentParser
 from server.response import Response
@@ -17,42 +22,52 @@ host = '0.0.0.0'
 port = int(os.environ.get('PORT', 5000))
 
 
-@app.route('/', methods=[HttpStatusCodes.GET])
+@app.route(BlockchainEndpoints.INDEX, methods=[HttpStatusCodes.GET])
 def get_home():
     return send_from_directory('ui/templates', 'node.html')
 
 
-@app.route('/network', methods=[HttpStatusCodes.GET])
+@ app.route(BlockchainEndpoints.NETWORK, methods=[HttpStatusCodes.GET])
 def get_network():
     return send_from_directory('ui/templates', 'network.html')
 
 
-@app.route('/transaction', methods=[HttpStatusCodes.POST])
+@ app.route(BlockchainEndpoints.TRANSACTION, methods=[HttpStatusCodes.POST])
 def add_transaction():
-    if not blockchain.has_wallet:
-        message = get_message(HttpStatusCodes.POST, False,
-                              'transaction', additional_info='No Wallet found!')
-        return Response({'transaction': None}, message, 500).get()
+    ensure_wallet(blockchain, action_subject='transaction')
 
     transaction_data: Union(Dict, None) = request.get_json()
-    required_fields = ['sender', 'recipient', 'amount']
-    if not has_all_required_fields(transaction_data, required_fields):
-        missing_fields = get_missing_fields(transaction_data, required_fields)
-        missing_fields_stringified = ', '.join(missing_fields)
-        message = get_message(HttpStatusCodes.POST, False,
-                              'transaction', additional_info=f'Please Provide complete transaction. Missing Fields: {missing_fields_stringified}')
-        return Response({'transaction': None, 'missing_fields': missing_fields}, message, 400).get()
 
-    add_transaction_success = blockchain.add_transaction(**transaction_data)
-    if not add_transaction_success:
-        message = get_message(HttpStatusCodes.POST, False, 'transaction')
-        return Response({'transaction': None, 'missing_fields': None}, message, 500).get()
+    ensure_required_fields(transaction_data, RequiredFields.get_required_fields(BlockchainEndpoints.TRANSACTION),
+                           action_subject='transaction')
 
-    message = get_message(HttpStatusCodes.POST, True, 'transaction')
-    return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None}, message, 200).get()
+    ensure_tx_appended(blockchain.add_transaction(**transaction_data))
+
+    tx_syncer = TransactionSync(blockchain.peer_nodes)
+    broadcast_tx_succes = tx_syncer.broadcast_transactions(
+        blockchain.latest_transaction)
+
+    message = get_message(HttpStatusCodes.POST,
+                          True, 'transaction')
+    return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None, "transactions_synced": broadcast_tx_succes}, message, 200).get()
 
 
-@ app.route('/transactions', methods=[HttpStatusCodes.GET])
+@ app.route(BlockchainEndpoints.BROADCAST_TRANSACTION, methods=[HttpStatusCodes.POST])
+def broadcast_transactions():
+    transaction_data: Union(Dict, None) = request.get_json()
+
+    ensure_required_fields(transaction_data, RequiredFields.get_required_fields(BlockchainEndpoints.TRANSACTION),
+                           action_subject='broadcast transaction')
+
+    ensure_tx_appended(blockchain.add_transaction(
+        **transaction_data, is_broadcast_tx=True))
+
+    message = get_message(HttpStatusCodes.POST,
+                          True, 'broadcast transaction')
+    return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None, "transactions_synced": True}, message, 200).get()
+
+
+@ app.route(BlockchainEndpoints.TRANSACTIONS, methods=[HttpStatusCodes.GET])
 def get_open_transactions():
     if not blockchain.has_wallet:
         message = get_message(HttpStatusCodes.GET, False,
@@ -124,7 +139,7 @@ def mine():
         return Response({}, message, 500).get()
 
 
-@app.route('/node', methods=[HttpStatusCodes.POST])
+@ app.route('/node', methods=[HttpStatusCodes.POST])
 def create_node():
     """ Adds a node to the blockchain peer nodes """
     body: Dict = request.get_json()
@@ -152,7 +167,7 @@ def delete_node(peer_node: str):
     return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, True, 'node'), 200).get()
 
 
-@app.route('/nodes', methods=[HttpStatusCodes.GET])
+@ app.route('/nodes', methods=[HttpStatusCodes.GET])
 def get_nodes():
     """ Returns all peer nodes associated with blockchain """
     all_nodes = blockchain.peer_nodes
@@ -167,6 +182,6 @@ if __name__ == '__main__':
         {'port': {'default': port, 'type': int}})
     port = parser.arguments.port
     blockchain = Blockchain(BlockchainFileStorageFactory, node_id=port)
-    
+
     print('Starting Server on PORT {}'.format(port))
     app.run(host, port, debug=True)

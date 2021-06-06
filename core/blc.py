@@ -63,13 +63,14 @@ class Blockchain:
             warn_no_wallet('mining')
             return False
 
-    def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set()) -> bool:
+    def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set(), signature: str = None, *, is_broadcast_tx=False) -> bool:
         """ Adds new transactions to open transactions and save it to storage  """
         if self.has_wallet:
-            signature = self.wallet.create_signature(sender, recipient, amount)
+            signature = self.wallet.create_signature(
+                sender, recipient, amount) if signature is None else signature
             initial_tx_size = self.open_transactions_size
             self.__open_transactions = append_transaction(
-                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants)
+                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants, skip_verification=is_broadcast_tx)
             self.__save()
             return self.open_transactions_size > initial_tx_size
         else:

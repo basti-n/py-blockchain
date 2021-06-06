@@ -29,7 +29,7 @@ def get_last_block(chain: List[Block]) -> Block:
 
 
 def get_tx_without_reward_tx(transactions: List[Transaction]) -> List[Transaction]:
-    """ Returns all transacitons except the last (reward transaction) """
+    """ Returns all transactions except the last (reward transaction) """
     return transactions[:-1]
 
 

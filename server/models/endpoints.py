@@ -7,3 +7,4 @@ class BlockchainEndpoints(str, Enum):
     TRANSACTION = '/transaction'
     TRANSACTIONS = '/transactions'
     BROADCAST_TRANSACTION = '/broadcast-transactions'
+    BROADCAST_BLOCK = '/broadcast-block'

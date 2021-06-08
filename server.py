@@ -1,5 +1,5 @@
-from core.blockchainTx import get_latest_transaction
 import os
+from utils.blockchainHelpers import block_from_deserialized_block
 from server.models.requiredFields import RequiredFields
 from server.responseGuards import ensure_required_fields, ensure_tx_appended, ensure_wallet
 from server.models.endpoints import BlockchainEndpoints
@@ -10,10 +10,12 @@ from server.response import Response
 from blockchain import *
 from flask import Flask, request, send_from_directory
 from flask_cors import CORS
-from server.responseHelpers import get_message, get_missing_fields, get_serializable_block, get_serializable_peer_nodes, get_serializable_transaction, has_all_required_fields, jsonify_chain
+from server.responseHelpers import get_message, get_serializable_block, get_serializable_peer_nodes, get_serializable_transaction, jsonify_chain
 from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
+from server.blockSyncer import BlockSync
 from core.blockchainFactory import BlockchainFileStorageFactory
+from core.blockchainBlock import is_future_block, is_next_block, is_previous_block
 
 app = Flask(__name__)
 CORS(app)
@@ -32,6 +34,32 @@ def get_network():
     return send_from_directory('ui/templates', 'network.html')
 
 
+@ app.route(BlockchainEndpoints.BROADCAST_BLOCK, methods=[HttpStatusCodes.POST])
+def broadcast_block():
+    block_data: Union(Dict, None) = request.get_json()
+
+    ensure_required_fields(block_data, RequiredFields.get_required_fields(BlockchainEndpoints.BROADCAST_BLOCK),
+                           action_subject='broadcast block')
+
+    broadcast_block = block_from_deserialized_block(block_data['block'])
+    successMessage = get_message(HttpStatusCodes.POST, True, 'broadcast block')
+    errorMessage = get_message(HttpStatusCodes.POST, False, 'broadcast block')
+
+    if is_next_block(blockchain, broadcast_block):
+        blockchain_added = blockchain.add_block(broadcast_block)
+
+        if blockchain_added:
+            return Response({}, successMessage, 200).get()
+
+        return Response({}, errorMessage, 400).get()
+
+    elif is_future_block(blockchain, broadcast_block):
+        return Response({}, errorMessage, 409).get()
+
+    elif is_previous_block(blockchain, broadcast_block):
+        return Response({}, errorMessage, 409).get()
+
+
 @ app.route(BlockchainEndpoints.TRANSACTION, methods=[HttpStatusCodes.POST])
 def add_transaction():
     ensure_wallet(blockchain, action_subject='transaction')
@@ -44,7 +72,7 @@ def add_transaction():
     ensure_tx_appended(blockchain.add_transaction(**transaction_data))
 
     tx_syncer = TransactionSync(blockchain.peer_nodes)
-    broadcast_tx_succes = tx_syncer.broadcast_transactions(
+    broadcast_tx_succes = tx_syncer.broadcast(
         blockchain.latest_transaction)
 
     message = get_message(HttpStatusCodes.POST,
@@ -131,12 +159,17 @@ def get_chain():
 @ app.route('/mine', methods=[HttpStatusCodes.POST])
 def mine():
     try:
-        miningSuccessful = blockchain.mine()
+        mining_successful = blockchain.mine()
         created_block = blockchain.latest_block
-        return Response({'block': get_serializable_block(created_block)}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if miningSuccessful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
+        if mining_successful and created_block:
+            blockSyncer = BlockSync(blockchain.peer_nodes)
+            broadcast_tx_succes = blockSyncer.broadcast(created_block)
+
+        return Response({'block': get_serializable_block(created_block), 'blockSynced': broadcast_tx_succes}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if mining_successful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
     except Exception as error:
-        message = get_message(HttpStatusCodes.POST, False, 'block', error)
-        return Response({}, message, 500).get()
+        message = get_message(HttpStatusCodes.POST, False,
+                              'block', f'(Error: {error})')
+        return Response({'blockSynced': False}, message, 500).get()
 
 
 @ app.route('/node', methods=[HttpStatusCodes.POST])

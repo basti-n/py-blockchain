@@ -1,8 +1,8 @@
 from typing import List, Tuple, Type
 from core.models.storage import Storage
-from utils.blockchainHelpers import get_balance
+from utils.blockchainHelpers import get_balance, get_last_block
 from utils.blockchainLogger import warn_no_wallet
-from core.blockchainMiner import get_mined_block
+from core.blockchainMiner import get_added_block, get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
 from core.blockchainTx import append_transaction, get_latest_transaction
 from core.blockchainWallet import Wallet
@@ -61,6 +61,15 @@ class Blockchain:
             return self.__save()
         else:
             warn_no_wallet('mining')
+            return False
+
+    def add_block(self, block: Block) -> bool:
+        if self.has_wallet:
+            self.__blockchain, self.__latest_block = get_added_block(
+                self.blockchain, block)
+            return self.__save()
+        else:
+            warn_no_wallet('adding block')
             return False
 
     def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set(), signature: str = None, *, is_broadcast_tx=False) -> bool:
@@ -126,6 +135,9 @@ class Blockchain:
         self.__blockchain, self.__open_transactions, self.peer_nodes = self.storage.load()
         if len(self.blockchain) < 1:
             self.blockchain = [GenesisBlock()]
+
+        self.__latest_block = get_last_block(
+            self.blockchain)
 
     def __save(self) -> bool:
         return self.storage.save(self.__blockchain, self.__open_transactions, self.peer_nodes)

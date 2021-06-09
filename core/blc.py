@@ -31,7 +31,10 @@ class Blockchain:
 
     @property
     def latest_transaction(self):
-        return get_latest_transaction(self.__open_transactions)
+        latest_open_tx = get_latest_transaction(self.__open_transactions)
+        latest_mined_tx = get_latest_transaction(
+            self.latest_block.transactions)
+        return latest_open_tx if latest_open_tx else latest_mined_tx
 
     @property
     def balance(self):

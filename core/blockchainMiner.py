@@ -30,8 +30,8 @@ def get_mined_block(chain: List[Block], open_tx: List[Transaction], owner: str) 
     return (chain, open_tx, block)
 
 
-def get_added_block(chain: List[Block], block: Block) -> Tuple[List[Block], Union[Block, None]]:
-    """ Appends block to chain and returns chain and appended block"""
+def get_added_block(chain: List[Block], open_tx: List[Transaction], block: Block) -> Tuple[List[Block], List[Transaction], Union[Block, None]]:
+    """ Appends block to chain and returns chain, open transactions and appended block"""
 
     try:
         is_valid = valid_proof(
@@ -41,11 +41,12 @@ def get_added_block(chain: List[Block], block: Block) -> Tuple[List[Block], Unio
 
         if is_valid and hashes_match:
             chain.append(block)
-            return (chain, block)
+            clear_transactions(open_tx)
+            return (chain, open_tx, block)
 
         print('Invalid Block! ...returning unchanged values.')
-        return (chain, get_last_block(chain))
+        return (chain, open_tx, get_last_block(chain))
 
     except Exception as error:
         print('Warning! Error adding block! ({})'.format(error))
-        return (chain, None)
+        return (chain, open_tx, None)

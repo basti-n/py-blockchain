@@ -68,8 +68,8 @@ class Blockchain:
 
     def add_block(self, block: Block) -> bool:
         if self.has_wallet:
-            self.__blockchain, self.__latest_block = get_added_block(
-                self.blockchain, block)
+            self.__blockchain, self.__open_transactions, self.__latest_block = get_added_block(
+                self.blockchain, self.__open_transactions, block)
             return self.__save()
         else:
             warn_no_wallet('adding block')

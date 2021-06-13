@@ -20,6 +20,6 @@ def is_previous_block(blockchain: Blockchain, block: Block) -> bool:
 def get_latest_block_index(blockchain: Blockchain) -> int:
     """ Returns the index of the latest block in blockchain """
     if blockchain.latest_block != None:
-        blockchain.latest_block.index
+        return blockchain.latest_block.index
 
     return 0

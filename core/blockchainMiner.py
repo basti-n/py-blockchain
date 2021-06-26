@@ -1,6 +1,6 @@
 from utils.blockchainHelpers import get_last_block, get_tx_without_reward_tx
 from core.blockchainHasher import createHashedBlock, proof_of_work, valid_proof
-from core.blockchainTx import add_reward_transaction, clear_transactions
+from core.blockchainTx import add_reward_transaction, clear_dublicate_transactions, clear_transactions
 from core.blockchainConstants import Block
 from core.transactionVerifier import TransactionVerifier
 from core.models.transaction import Transaction
@@ -26,7 +26,7 @@ def get_mined_block(chain: List[Block], open_tx: List[Transaction], owner: str) 
     block = Block(hashed_block, index, open_tx.copy(), proof)
 
     chain.append(block)
-    clear_transactions(open_tx)
+    open_tx = clear_dublicate_transactions(open_tx, block.transactions)
     return (chain, open_tx, block)
 
 

@@ -18,6 +18,7 @@ class Blockchain:
         self.wallet = factory_instance.get_wallet()
         self.owner = factory_instance.get_owner()
         self.peer_nodes = factory_instance.get_peer_nodes()
+        self.__resolve_conflicts = factory_instance.get_resolve_conflicts()
         self.__initialize()
         pass
 
@@ -55,6 +56,14 @@ class Blockchain:
     @property
     def has_wallet(self):
         return self.wallet != None and self.owner != None
+
+    @property
+    def has_conflicts(self):
+        return self.__resolve_conflicts
+
+    @has_conflicts.setter
+    def has_conflicts(self, has_conflict: bool) -> None:
+        self.__resolve_conflicts = has_conflict
 
     def mine(self) -> bool:
         """ Mines a block and saves the blockchain and open transactions """

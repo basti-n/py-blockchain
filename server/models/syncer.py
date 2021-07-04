@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Tuple
 
 
 class Syncer():
@@ -8,7 +8,7 @@ class Syncer():
         self.path = path
 
     @abstractmethod
-    def broadcast(self) -> bool:
+    def broadcast(self) -> Tuple[bool, bool]:
         pass
 
     def get_url(self, node: str) -> str:

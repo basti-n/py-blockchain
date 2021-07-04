@@ -17,6 +17,9 @@ class BlockchainFactory:
     def get_storage(self, path: Union[str, None] = None) -> Union[Storage, None]:
         return None
 
+    def get_resolve_conflicts(self) -> bool:
+        return False
+
 
 class BlockchainFileStorageFactory(BlockchainFactory):
     def get_storage(self, path: Union[str, None] = None) -> Union[Storage, None]:

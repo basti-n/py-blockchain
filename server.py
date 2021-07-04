@@ -1,4 +1,6 @@
 import os
+from server.models.statusCodes import HttpStatusCodes
+from server.models.httpMethods import HttpMethods
 from utils.blockchainHelpers import block_from_deserialized_block
 from server.models.requiredFields import RequiredFields
 from server.responseGuards import ensure_required_fields, ensure_tx_appended, ensure_wallet
@@ -11,7 +13,6 @@ from blockchain import *
 from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 from server.responseHelpers import get_message, get_serializable_block, get_serializable_peer_nodes, get_serializable_transaction, jsonify_chain
-from server.models.statusCodes import HttpStatusCodes
 from server.requestHelpers import get_param
 from server.blockSyncer import BlockSync
 from core.blockchainFactory import BlockchainFileStorageFactory
@@ -24,17 +25,17 @@ host = '0.0.0.0'
 port = int(os.environ.get('PORT', 5000))
 
 
-@app.route(BlockchainEndpoints.INDEX, methods=[HttpStatusCodes.GET])
+@app.route(BlockchainEndpoints.INDEX, methods=[HttpMethods.GET])
 def get_home():
     return send_from_directory('ui/templates', 'node.html')
 
 
-@ app.route(BlockchainEndpoints.NETWORK, methods=[HttpStatusCodes.GET])
+@ app.route(BlockchainEndpoints.NETWORK, methods=[HttpMethods.GET])
 def get_network():
     return send_from_directory('ui/templates', 'network.html')
 
 
-@ app.route(BlockchainEndpoints.BROADCAST_BLOCK, methods=[HttpStatusCodes.POST])
+@ app.route(BlockchainEndpoints.BROADCAST_BLOCK, methods=[HttpMethods.POST])
 def broadcast_block():
     block_data: Union(Dict, None) = request.get_json()
 
@@ -42,8 +43,8 @@ def broadcast_block():
                            action_subject='broadcast block')
 
     broadcast_block = block_from_deserialized_block(block_data['block'])
-    successMessage = get_message(HttpStatusCodes.POST, True, 'broadcast block')
-    errorMessage = get_message(HttpStatusCodes.POST, False, 'broadcast block')
+    successMessage = get_message(HttpMethods.POST, True, 'broadcast block')
+    errorMessage = get_message(HttpMethods.POST, False, 'broadcast block')
 
     if is_next_block(blockchain, broadcast_block):
         blockchain_added = blockchain.add_block(broadcast_block)
@@ -54,13 +55,16 @@ def broadcast_block():
         return Response({}, errorMessage, 400).get()
 
     elif is_future_block(blockchain, broadcast_block):
-        return Response({}, errorMessage, 409).get()
+        # Our blockchain is out ouf date -> needs to be updated
+        blockchain.has_conflicts = True
+        return Response({}, errorMessage, 200).get()
 
     elif is_previous_block(blockchain, broadcast_block):
-        return Response({}, errorMessage, 409).get()
+        # Our blockchain is most recent -> other nodes (blockchains) to be updated
+        return Response({}, errorMessage, HttpStatusCodes.CONFLICT).get()
 
 
-@ app.route(BlockchainEndpoints.TRANSACTION, methods=[HttpStatusCodes.POST])
+@ app.route(BlockchainEndpoints.TRANSACTION, methods=[HttpMethods.POST])
 def add_transaction():
     ensure_wallet(blockchain, action_subject='transaction')
 
@@ -72,15 +76,15 @@ def add_transaction():
     ensure_tx_appended(blockchain.add_transaction(**transaction_data))
 
     tx_syncer = TransactionSync(blockchain.peer_nodes)
-    broadcast_tx_succes = tx_syncer.broadcast(
+    broadcast_tx_succes, _ = tx_syncer.broadcast(
         blockchain.latest_transaction)
 
-    message = get_message(HttpStatusCodes.POST,
+    message = get_message(HttpMethods.POST,
                           True, 'transaction')
     return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None, "transactions_synced": broadcast_tx_succes}, message, 200).get()
 
 
-@ app.route(BlockchainEndpoints.BROADCAST_TRANSACTION, methods=[HttpStatusCodes.POST])
+@ app.route(BlockchainEndpoints.BROADCAST_TRANSACTION, methods=[HttpMethods.POST])
 def broadcast_transactions():
     transaction_data: Union(Dict, None) = request.get_json()
 
@@ -90,23 +94,23 @@ def broadcast_transactions():
     ensure_tx_appended(blockchain.add_transaction(
         **transaction_data, is_broadcast_tx=True))
 
-    message = get_message(HttpStatusCodes.POST,
+    message = get_message(HttpMethods.POST,
                           True, 'broadcast transaction')
     return Response({'transaction': get_serializable_transaction(blockchain.latest_transaction), 'missing_fields': None, "transactions_synced": True}, message, 200).get()
 
 
-@ app.route(BlockchainEndpoints.TRANSACTIONS, methods=[HttpStatusCodes.GET])
+@ app.route(BlockchainEndpoints.TRANSACTIONS, methods=[HttpMethods.GET])
 def get_open_transactions():
     if not blockchain.has_wallet:
-        message = get_message(HttpStatusCodes.GET, False,
+        message = get_message(HttpMethods.GET, False,
                               'open transaction', additional_info='No Wallet found!')
         return Response({'open_transactions': None}, message, 500).get()
 
-    message = get_message(HttpStatusCodes.GET, True, 'open transaction', )
+    message = get_message(HttpMethods.GET, True, 'open transaction', )
     return Response({'open_transactions': get_serializable_transaction(blockchain.open_transactions)}, message, 200).get()
 
 
-@ app.route('/wallet', methods=[HttpStatusCodes.POST])
+@ app.route('/wallet', methods=[HttpMethods.POST])
 def create_wallet():
     saved = False
     error = False
@@ -124,90 +128,97 @@ def create_wallet():
             error = True
 
     success = error is False
-    message = get_message(HttpStatusCodes.POST, success, 'wallet')
+    message = get_message(HttpMethods.POST, success, 'wallet')
     status = 201 if success else 500
     return Response({'public_key': blockchain.owner, 'private_key': private_key, 'savedWallet': saved}, message, status).get()
 
 
-@ app.route('/wallet', methods=[HttpStatusCodes.GET])
+@ app.route('/wallet', methods=[HttpMethods.GET])
 def load_wallet():
     blockchain.load_wallet()
     if blockchain.has_wallet:
-        message = get_message(HttpStatusCodes.GET, True, 'wallet')
+        message = get_message(HttpMethods.GET, True, 'wallet')
         return Response({'public_key': blockchain.owner, 'savedWallet': True}, message, 200).get()
 
-    message = get_message(HttpStatusCodes.GET, False, 'wallet')
+    message = get_message(HttpMethods.GET, False, 'wallet')
     return Response({'public_key': blockchain.owner, 'savedWallet': False}, message, 500).get()
 
 
-@ app.route('/balance', methods=[HttpStatusCodes.GET])
+@ app.route('/balance', methods=[HttpMethods.GET])
 def get_balance():
     if not blockchain.has_wallet:
-        message = get_message(HttpStatusCodes.GET, False, 'balance')
+        message = get_message(HttpMethods.GET, False, 'balance')
         return Response({'funds': 0, 'hasOwner': False}, message, 500).get()
 
-    message = message = get_message(HttpStatusCodes.GET, True, 'balance')
+    message = message = get_message(HttpMethods.GET, True, 'balance')
     return Response({'funds': blockchain.balance, 'hasOwner': True}, message, 200).get()
 
 
-@ app.route('/chain', methods=[HttpStatusCodes.GET])
+@ app.route('/chain', methods=[HttpMethods.GET])
 def get_chain():
     chain_snapshot = blockchain.blockchain
     return jsonify_chain(chain_snapshot), 200
 
 
-@ app.route('/mine', methods=[HttpStatusCodes.POST])
+@ app.route('/mine', methods=[HttpMethods.POST])
 def mine():
+    if blockchain.has_conflicts:
+        message = get_message(HttpMethods.POST, False,
+                              'block', additional_info='Conflict: Please resolve the conflict first!')
+        return Response({'blockSynced': False, 'conflict': True}, message, HttpStatusCodes.CONFLICT).get()
+
     try:
         mining_successful = blockchain.mine()
         created_block = blockchain.latest_block
         if mining_successful and created_block:
             blockSyncer = BlockSync(blockchain.peer_nodes)
-            broadcast_tx_succes = blockSyncer.broadcast(created_block)
+            broadcast_tx_succes, has_conflicts = blockSyncer.broadcast(
+                created_block)
+            blockchain.has_conflicts = has_conflicts
 
-        return Response({'block': get_serializable_block(created_block), 'blockSynced': broadcast_tx_succes}, get_message(HttpStatusCodes.POST, True, 'block'), 200).get() if mining_successful else Response({'error': True}, get_message(HttpStatusCodes.POST, False, 'block'), 400).get()
+        return Response({'block': get_serializable_block(created_block), 'blockSynced': broadcast_tx_succes, 'conflict': blockchain.has_conflicts}, get_message(HttpMethods.POST, True, 'block'), 200).get() if mining_successful else Response({'error': True}, get_message(HttpMethods.POST, False, 'block'), 400).get()
     except Exception as error:
-        message = get_message(HttpStatusCodes.POST, False,
+        message = get_message(HttpMethods.POST, False,
                               'block', f'(Error: {error})')
-        return Response({'blockSynced': False}, message, 500).get()
+        return Response({'blockSynced': False, has_conflicts: blockchain.has_conflicts}, message, 500).get()
 
 
-@ app.route('/node', methods=[HttpStatusCodes.POST])
+@ app.route('/node', methods=[HttpMethods.POST])
 def create_node():
     """ Adds a node to the blockchain peer nodes """
     body: Dict = request.get_json()
     node_to_add = body.get('node')
     if not body or not node_to_add:
-        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, False, 'node', additional_info='Please provide a valid node to add.'), 400).get()
+        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.POST, False, 'node', additional_info='Please provide a valid node to add.'), 400).get()
 
     if blockchain.add_peer_node(node_to_add):
-        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, True, 'node'), 200).get()
+        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.POST, True, 'node'), 200).get()
 
-    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.POST, False, 'node', additional_info=f'Saving peer node {node_to_add} failed!'), 400).get()
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.POST, False, 'node', additional_info=f'Saving peer node {node_to_add} failed!'), 400).get()
 
 
-@ app.route('/node/<path:peer_node>', methods=[HttpStatusCodes.DELETE])
+@ app.route('/node/<path:peer_node>', methods=[HttpMethods.DELETE])
 def delete_node(peer_node: str):
     """ Deletes a node from the blockchain peer nodes """
     node_to_delete = peer_node
     if not len(node_to_delete):
-        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, False, 'node', additional_info='Please provide a valid node to delete.'), 400).get()
+        return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.DELETE, False, 'node', additional_info='Please provide a valid node to delete.'), 400).get()
 
     if not node_to_delete in blockchain.peer_nodes:
-        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, False, 'node', additional_info=f'Delete peer node {node_to_delete} failed. No peer node found!'), 500).get()
+        return Response({'node': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.DELETE, False, 'node', additional_info=f'Delete peer node {node_to_delete} failed. No peer node found!'), 500).get()
 
     blockchain.remove_peer_node(node_to_delete)
-    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.DELETE, True, 'node'), 200).get()
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.DELETE, True, 'node'), 200).get()
 
 
-@ app.route('/nodes', methods=[HttpStatusCodes.GET])
+@ app.route('/nodes', methods=[HttpMethods.GET])
 def get_nodes():
     """ Returns all peer nodes associated with blockchain """
     all_nodes = blockchain.peer_nodes
     if all_nodes is None:
-        return Response({'nodes': None}, get_message(HttpStatusCodes.GET, False, 'node'), 500).get()
+        return Response({'nodes': None}, get_message(HttpMethods.GET, False, 'node'), 500).get()
 
-    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpStatusCodes.GET, True, 'node'), 200).get()
+    return Response({'nodes': get_serializable_peer_nodes(blockchain.peer_nodes)}, get_message(HttpMethods.GET, True, 'node'), 200).get()
 
 
 if __name__ == '__main__':

@@ -12,12 +12,15 @@ from core.blockchainConflictResolver import ConflictResolver
 
 
 class Blockchain(BaseBlockchain):
-    def __init__(self, factory: Type[BlockchainFactory], node_id: str = '__internal__') -> None:
+    def __init__(
+        self, factory: Type[BlockchainFactory], node_id: str = "__internal__"
+    ) -> None:
         super().__init__()
         factory_instance = factory()
         self.node_id = node_id
         self.storage = factory_instance.get_storage(
-            Storage.generate_path(prefix='storage', id=self.node_id))
+            Storage.generate_path(prefix="storage", id=self.node_id)
+        )
         self.wallet = factory_instance.get_wallet()
         self.owner = factory_instance.get_owner()
         self.peer_nodes = factory_instance.get_peer_nodes()
@@ -36,7 +39,8 @@ class Blockchain(BaseBlockchain):
     def latest_transaction(self):
         latest_open_tx = get_latest_transaction(self.__open_transactions)
         latest_mined_tx = get_latest_transaction(
-            self.latest_block.transactions)
+            self.latest_block.transactions
+        )
         return latest_open_tx if latest_open_tx else latest_mined_tx
 
     @property
@@ -57,7 +61,7 @@ class Blockchain(BaseBlockchain):
 
     @property
     def has_wallet(self):
-        return self.wallet != None and self.owner != None
+        return self.wallet is not None and self.owner is not None
 
     @property
     def has_conflicts(self):
@@ -68,41 +72,71 @@ class Blockchain(BaseBlockchain):
         self.__resolve_conflicts = has_conflict
 
     def mine(self) -> bool:
-        """ Mines a block and saves the blockchain and open transactions """
+        """Mines a block and saves the blockchain and open transactions"""
         if self.has_wallet:
-            self.__blockchain, self.__open_transactions, self.__latest_block = get_mined_block(
-                self.__blockchain, self.__open_transactions, self.owner)
+            (
+                self.__blockchain,
+                self.__open_transactions,
+                self.__latest_block,
+            ) = get_mined_block(
+                self.__blockchain, self.__open_transactions, self.owner
+            )
             return self.__save()
         else:
-            warn_no_wallet('mining')
+            warn_no_wallet("mining")
             return False
 
     def add_block(self, block: Block) -> bool:
         if self.has_wallet:
-            self.__blockchain, self.__open_transactions, self.__latest_block = get_added_block(
-                self.blockchain, self.__open_transactions, block)
+            (
+                self.__blockchain,
+                self.__open_transactions,
+                self.__latest_block,
+            ) = get_added_block(
+                self.blockchain, self.__open_transactions, block
+            )
             return self.__save()
         else:
-            warn_no_wallet('adding block')
+            warn_no_wallet("adding block")
             return False
 
-    def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set(), signature: str = None, *, is_broadcast_tx=False) -> bool:
-        """ Adds new transactions to open transactions and save it to storage  """
+    def add_transaction(
+        self,
+        sender: str,
+        recipient: str,
+        amount=1.0,
+        participants: set = set(),
+        signature: str = None,
+        *,
+        is_broadcast_tx=False
+    ) -> bool:
+        """Adds new transactions to open transactions and save it to storage"""
         if self.has_wallet:
-            signature = self.wallet.create_signature(
-                sender, recipient, amount) if signature is None else signature
+            signature = (
+                self.wallet.create_signature(sender, recipient, amount)
+                if signature is None
+                else signature
+            )
             initial_tx_size = self.open_transactions_size
             self.__open_transactions = append_transaction(
-                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants, skip_verification=is_broadcast_tx)
+                sender,
+                recipient,
+                amount,
+                chain=self.__blockchain,
+                signature=signature,
+                open_tx=self.__open_transactions,
+                participants=participants,
+                skip_verification=is_broadcast_tx,
+            )
             self.__save()
             return self.open_transactions_size > initial_tx_size
         else:
-            warn_no_wallet('adding transaction')
+            warn_no_wallet("adding transaction")
             return False
 
     def create_wallet(self) -> Tuple[str, str]:
-        """ Sets private key and owner (public key) """
-        if self.wallet == None:
+        """Sets private key and owner (public key)"""
+        if self.wallet is None:
             self.wallet = Wallet(node_id=self.node_id)
 
         private_key, public_key = self.wallet.create_keys()
@@ -111,14 +145,14 @@ class Blockchain(BaseBlockchain):
 
     def save_wallet(self) -> bool:
         if not self.has_wallet:
-            print('Error: Wallet does not exist.')
+            print("Error: Wallet does not exist.")
             return False
 
         return self.wallet.save_keys()
 
     def load_wallet(self) -> None:
-        """ Loads owner (public key) from storage """
-        if self.wallet == None:
+        """Loads owner (public key) from storage"""
+        if self.wallet is None:
             self.wallet = Wallet(node_id=self.node_id)
 
         if self.wallet.load_keys():
@@ -127,7 +161,7 @@ class Blockchain(BaseBlockchain):
             self.__reset_owner()
 
     def add_peer_node(self, node: str) -> bool:
-        """ Adds a peer node.
+        """Adds a peer node.
 
         Arguments:
             :node: The url of the node to add.
@@ -136,7 +170,7 @@ class Blockchain(BaseBlockchain):
         return self.__save()
 
     def remove_peer_node(self, node: str) -> bool:
-        """ Deletes a peer node.
+        """Deletes a peer node.
 
         Arguments:
             :node: The url of the node to remove.
@@ -152,16 +186,23 @@ class Blockchain(BaseBlockchain):
         return chain_resolved
 
     def __initialize(self) -> None:
-        """ Initializes the blockchain, open transactions and peer nodes by using the provided storage """
-        self.__blockchain, self.__open_transactions, self.peer_nodes = self.storage.load()
+        """Initializes the blockchain, open transactions and
+        peer nodes by using the provided storage
+        """
+        (
+            self.__blockchain,
+            self.__open_transactions,
+            self.peer_nodes,
+        ) = self.storage.load()
         if len(self.blockchain) < 1:
             self.blockchain = [GenesisBlock()]
 
-        self.__latest_block = get_last_block(
-            self.blockchain)
+        self.__latest_block = get_last_block(self.blockchain)
 
     def __save(self) -> bool:
-        return self.storage.save(self.__blockchain, self.__open_transactions, self.peer_nodes)
+        return self.storage.save(
+            self.__blockchain, self.__open_transactions, self.peer_nodes
+        )
 
     def __reset_owner(self) -> None:
         self.owner = None

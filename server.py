@@ -55,12 +55,10 @@ def broadcast_block():
         return Response({}, errorMessage, 400).get()
 
     elif is_future_block(blockchain, broadcast_block):
-        # Our blockchain is out ouf date -> needs to be updated
         blockchain.has_conflicts = True
         return Response({}, errorMessage, 200).get()
 
     elif is_previous_block(blockchain, broadcast_block):
-        # Our blockchain is most recent -> other nodes (blockchains) to be updated
         return Response({}, errorMessage, HttpStatusCodes.CONFLICT).get()
 
 
@@ -154,7 +152,7 @@ def get_balance():
     return Response({'funds': blockchain.balance, 'hasOwner': True}, message, 200).get()
 
 
-@ app.route('/chain', methods=[HttpMethods.GET])
+@ app.route(BlockchainEndpoints.CHAIN, methods=[HttpMethods.GET])
 def get_chain():
     chain_snapshot = blockchain.blockchain
     return jsonify_chain(chain_snapshot), 200
@@ -176,11 +174,24 @@ def mine():
                 created_block)
             blockchain.has_conflicts = has_conflicts
 
-        return Response({'block': get_serializable_block(created_block), 'blockSynced': broadcast_tx_succes, 'conflict': blockchain.has_conflicts}, get_message(HttpMethods.POST, True, 'block'), 200).get() if mining_successful else Response({'error': True}, get_message(HttpMethods.POST, False, 'block'), 400).get()
+        return Response({'block': get_serializable_block(created_block), 'blockSynced': broadcast_tx_succes, 'conflict': blockchain.has_conflicts}, get_message(HttpMethods.POST, True, 'block'), HttpStatusCodes.SUCCESS).get() if mining_successful else Response({'error': True}, get_message(HttpMethods.POST, False, 'block'), 400).get()
     except Exception as error:
         message = get_message(HttpMethods.POST, False,
-                              'block', f'(Error: {error})')
-        return Response({'blockSynced': False, has_conflicts: blockchain.has_conflicts}, message, 500).get()
+                              'block', additional_info=f'(Error: {error})')
+        return Response({'blockSynced': False}, message, HttpStatusCodes.SERVER_ERROR).get()
+
+
+@app.route(BlockchainEndpoints.RESOLVE_CONFLICTS, methods=[HttpMethods.POST])
+def resolve_conflicts():
+    blockchain_replaced = blockchain.resolve_conflicts()
+
+    if blockchain_replaced:
+        blockchain.has_conflicts = False
+
+    conflict_message = 'Conflict succesfully resolved.' if blockchain_replaced else 'No Conflict found. Blockchain unchanged.'
+    message = get_message(HttpMethods.POST, blockchain_replaced,
+                          'conflict', additional_info=conflict_message)
+    return Response({'conflictResolved': blockchain_replaced}, message, HttpStatusCodes.SUCCESS).get()
 
 
 @ app.route('/node', methods=[HttpMethods.POST])

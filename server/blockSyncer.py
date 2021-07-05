@@ -12,9 +12,9 @@ class BlockSync(Syncer):
         super().__init__(peer_nodes, path)
 
     def broadcast(self, block: Block) -> Tuple[bool, bool]:
+        marked_for_conflict = False
         for node in self.peer_nodes:
             url = self.get_url(node)
-            marked_for_conflict = False
 
             try:
                 response = requests.post(
@@ -26,4 +26,4 @@ class BlockSync(Syncer):
             except requests.exceptions.ConnectionError:
                 continue
 
-            return (True, marked_for_conflict)
+        return (True, marked_for_conflict)

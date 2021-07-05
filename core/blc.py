@@ -1,3 +1,4 @@
+from core.models.baseBlockchain import BaseBlockchain
 from typing import List, Tuple, Type
 from core.models.storage import Storage
 from utils.blockchainHelpers import get_balance, get_last_block
@@ -7,10 +8,12 @@ from core.blockchainConstants import Block, GenesisBlock
 from core.blockchainTx import append_transaction, get_latest_transaction
 from core.blockchainWallet import Wallet
 from core.blockchainFactory import BlockchainFactory
+from core.blockchainConflictResolver import ConflictResolver
 
 
-class Blockchain:
+class Blockchain(BaseBlockchain):
     def __init__(self, factory: Type[BlockchainFactory], node_id: str = '__internal__') -> None:
+        super().__init__()
         factory_instance = factory()
         self.node_id = node_id
         self.storage = factory_instance.get_storage(
@@ -20,7 +23,6 @@ class Blockchain:
         self.peer_nodes = factory_instance.get_peer_nodes()
         self.__resolve_conflicts = factory_instance.get_resolve_conflicts()
         self.__initialize()
-        pass
 
     @property
     def blockchain(self):
@@ -141,6 +143,13 @@ class Blockchain:
         """
         self.peer_nodes.discard(node)
         return self.__save()
+
+    def resolve_conflicts(self) -> bool:
+        resolver = ConflictResolver(self)
+        chain_resolved = resolver.resolve()
+
+        self.__save()
+        return chain_resolved
 
     def __initialize(self) -> None:
         """ Initializes the blockchain, open transactions and peer nodes by using the provided storage """

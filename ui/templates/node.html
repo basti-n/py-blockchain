@@ -201,6 +201,13 @@
                         >
                             Mine Coins
                         </button>
+                        <button 
+                            v-if="view === 'chain' && wallet"
+                            class="btn btn-outline-warning" 
+                            @click="onResolveConflicts"
+                        >
+                            Resolve Conflicts
+                        </button>
                     </div>
                 </div>
                 <div class="row">
@@ -426,6 +433,23 @@
 
                         try {
                             const { data } = await axios.post('/mine');
+                            this.error = null;
+                            this.success = data.message;
+                            this.funds = await this.fetchBalance();
+                        } catch (error) {
+                            this.success = null;
+                            this.error =
+                                error.response?.data?.message ??
+                                this.defaultError;
+                        } finally {
+                            this.setIsLoading(false);
+                        }
+                    },
+                    onResolveConflicts: async function() {
+                        this.setIsLoading(true);
+
+                        try {
+                            const { data } = await axios.post('/resolve-conflicts');
                             this.error = null;
                             this.success = data.message;
                             this.funds = await this.fetchBalance();

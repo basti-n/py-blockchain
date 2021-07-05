@@ -1,8 +1,8 @@
-from typing import Any, Dict, List, Union
+from server.models.httpMethods import HttpMethods
+from typing import Any, Dict, List, Set, Union
 from core.models.transaction import Transaction
 from core.blockchainConstants import Block
 from flask.json import jsonify
-from server.models.statusCodes import HttpStatusCodes
 
 
 def jsonify_chain(chain: List[Block]):
@@ -31,7 +31,12 @@ def get_serializable_transaction(tx: Union[Transaction, List[Transaction]]) -> D
     return tx.__dict__.copy()
 
 
-def get_message(type: HttpStatusCodes, is_success: bool, subject: str, *, additional_info: Union[str, None] = None) -> str:
+def get_serializable_peer_nodes(nodes: Set[str]) -> List[str]:
+    """ Returns the nodes as a JSON serializable list """
+    return list(nodes)
+
+
+def get_message(type: HttpMethods, is_success: bool, subject: str, *, additional_info: Union[str, None] = None) -> str:
     verb = get_verb_for_message(type)
     result = 'succeeded' if is_success else 'failed'
     additional_info = f' ({additional_info})' if additional_info and len(
@@ -39,13 +44,15 @@ def get_message(type: HttpStatusCodes, is_success: bool, subject: str, *, additi
     return f'[{type}] {verb} {subject} {result}{additional_info}'
 
 
-def get_verb_for_message(type: HttpStatusCodes) -> str:
-    if type == HttpStatusCodes.PUT:
+def get_verb_for_message(type: HttpMethods) -> str:
+    if type == HttpMethods.PUT:
         return 'updating'
-    if type == HttpStatusCodes.POST:
+    if type == HttpMethods.POST:
         return 'creating'
-    if type == HttpStatusCodes.GET:
+    if type == HttpMethods.GET:
         return 'getting'
+    if type == HttpMethods.DELETE:
+        return 'deleting'
 
     print('Warning: Unknown status code ({}) received!'.format(type))
     return 'unknown operation'

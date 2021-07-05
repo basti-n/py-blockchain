@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Blockchain Management</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+            integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+            crossorigin="anonymous"
+        />
+        <style>
+            .lds-ring {
+                display: inline-block;
+                position: relative;
+                width: 64px;
+                height: 64px;
+            }
+
+            .lds-ring div {
+                box-sizing: border-box;
+                display: block;
+                position: absolute;
+                width: 51px;
+                height: 51px;
+                margin: 6px;
+                border: 6px solid #fa923f;
+                border-radius: 50%;
+                animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+                border-color: #fa923f transparent transparent transparent;
+            }
+
+            .lds-ring div:nth-child(1) {
+                animation-delay: -0.45s;
+            }
+
+            .lds-ring div:nth-child(2) {
+                animation-delay: -0.3s;
+            }
+
+            .lds-ring div:nth-child(3) {
+                animation-delay: -0.15s;
+            }
+
+            @keyframes lds-ring {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="app">
+            <div class="container">
+                <div class="row mb-3">
+                    <div class="col">
+                        <h1>Manage your Blockchain</h1>
+                    </div>
+                </div>
+                <div class="row">
+                    <div v-if="dataLoading" class="lds-ring">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                </div>
+                <div v-if="error" class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                <div v-if="success" class="alert alert-success" role="alert">
+                    {{ success }}
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/"
+                                    >Wallet &amp; Node</a
+                                >
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/network"
+                                    >Network</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col">
+                        <form @submit.prevent="onAddNode">
+                            <div class="form-group">
+                                <label for="node-url">Node URL</label>
+                                <input
+                                    v-model="newNodeUrl"
+                                    type="text"
+                                    class="form-control"
+                                    id="node-url"
+                                    placeholder="http://localhost:5001"
+                                />
+                            </div>
+                            <button
+                                :disabled="newNodeUrl.trim() === ''"
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <hr />
+                <div class="row my-3">
+                    <div class="col">
+                        <button class="btn btn-primary" @click="onLoadNodes">
+                            Load Peer Nodes
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <ul class="list-group">
+                            <button
+                                v-for="node in nodes"
+                                style="cursor: pointer"
+                                class="list-group-item list-group-item-action"
+                                @click="onRemoveNode(node)"
+                            >
+                                {{ node }} (click to delete)
+                            </button>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script>
+            new Vue({
+                el: '#app',
+                data: {
+                    nodes: [],
+                    newNodeUrl: '',
+                    error: null,
+                    success: null,
+                    dataLoading: false,
+                    defaultError: 'Something went wrong!',
+                },
+                methods: {
+                    setIsLoading: function (isLoading) {
+                        this.dataLoading = isLoading;
+                    },
+                    resetForm: function () {
+                        this.newNodeUrl = '';
+                    },
+                    updateNodes: function (updatedNodes) {
+                        this.nodes = updatedNodes;
+                    },
+                    onAddNode: async function () {
+                        this.setIsLoading(true);
+                        try {
+                            const { data } = await axios.post('/node', {
+                                node: this.newNodeUrl,
+                            });
+                            this.updateNodes(data.nodes);
+                            this.success = data.message;
+                            this.error = null;
+                        } catch (error) {
+                            this.success = null;
+                            this.error =
+                                error.response?.data?.message ??
+                                this.defaultError;
+                        } finally {
+                            this.resetForm();
+                            this.setIsLoading(false);
+                        }
+                    },
+                    onLoadNodes: async function () {
+                        this.setIsLoading(true);
+                        try {
+                            const { data } = await axios.get('/nodes');
+                            this.updateNodes(data.nodes);
+                            this.success = data.message;
+                            this.error = null;
+                        } catch (error) {
+                            this.success = null;
+                            this.error =
+                                error.response?.data?.message ??
+                                this.defaultError;
+                        } finally {
+                            this.setIsLoading(false);
+                        }
+                    },
+                    onRemoveNode: async function (node) {
+                        this.setIsLoading(true);
+                        try {
+                            const { data } = await axios.delete(
+                                `/node/${node}`
+                            );
+                            this.updateNodes(data.nodes);
+                            this.success = data.message;
+                            this.error = null;
+                        } catch (error) {
+                            this.success = null;
+                            this.error =
+                                error.response?.data?.message ??
+                                this.defaultError;
+                        } finally {
+                            this.setIsLoading(false);
+                        }
+                    },
+                },
+            });
+        </script>
+    </body>
+</html>

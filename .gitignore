@@ -1,6 +1,6 @@
 # Blockchain
-storage.txt
-wallet.txt
+storage*.txt
+wallet*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

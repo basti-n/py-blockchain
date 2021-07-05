@@ -23,6 +23,7 @@ pycodestyle==2.7.0
 pycryptodome==3.10.1
 # python==3.9.4
 # readline==8.1
+requests==2.25.1
 setuptools==52.0.0
 six==1.15.0
 # sqlite==3.35.4

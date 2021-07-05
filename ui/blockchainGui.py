@@ -1,3 +1,4 @@
+from utils.peerNodeHelpers import ask_for_peer_nodes
 from core.blc import Blockchain
 from utils.metaclasses.singletonMeta import SingletonMeta
 from core.blockchainTx import ask_for_tx
@@ -53,6 +54,19 @@ class GUI(metaclass=SingletonMeta):
             elif command == 8:
                 self.blockchain.save_wallet()
 
+            elif command == 9:
+                peer_node_to_add = ask_for_peer_nodes()
+                peer_node_added = self.blockchain.add_peer_node(
+                    peer_node_to_add)
+                printDependingOn(
+                    peer_node_added, 'Node successfully added.', 'Error adding Node!')
+
+            elif command == 10:
+                peer_node_to_delete = ask_for_peer_nodes()
+                self.blockchain.remove_peer_node(peer_node_to_delete)
+                printDependingOn(
+                    peer_node_to_delete, 'Node successfully removed.', 'Error removing Node!')
+
             elif command == 0:
                 print('Exiting Program.')
                 break
@@ -80,6 +94,8 @@ class GUI(metaclass=SingletonMeta):
             sixthOption: str = 'Create Wallet',
             seventhOption: str = 'Load Wallet',
             eigthOption: str = 'Save Wallet',
+            ninthOption: str = 'Add Peer Node',
+            tenthOptipn: str = 'Delete Peer Node',
             offerQuit: bool = True,
             offerManipulate: bool = True) -> int:
         """ Returns the user choise as an integer """
@@ -92,6 +108,8 @@ class GUI(metaclass=SingletonMeta):
         print(f'Option 6: {sixthOption}')
         print(f'Option 7: {seventhOption}')
         print(f'Option 8: {eigthOption}')
+        print(f'Option 9: {ninthOption}')
+        print(f'Option 10: {tenthOptipn}')
 
         if offerQuit == True:
             print(f'Quit: Press "q" for quitting')

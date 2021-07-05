@@ -48,7 +48,7 @@ def ask_for_tx() -> Tuple[float, str]:
         try:
             tx_amount = float(input('Your transaction amount: '))
         except ValueError as valueError:
-            ErrorHandler.logValueError(
+            ErrorHandler.logError(
                 valueError, msgPrefix='Invalid input: ', msgPostfix='. Please provide a valid number (e.g. 12)')
     tx_recipient = input('Your transaction recipient: ')
     return tx_amount, tx_recipient
@@ -59,9 +59,23 @@ def get_tx_data(sender: str, recipient: str, signature: str, value: float = 1.0)
     return Transaction(sender, recipient, value, signature)
 
 
-def clear_transactions(open_transactions: list) -> None:
+def clear_transactions(open_transactions: List[Transaction]) -> None:
     """ Removes all open transactions """
     open_transactions.clear()
+
+
+def clear_dublicate_transactions(open_transactions: List[Transaction], reference_transactions: List[Transaction]) -> List[Transaction]:
+    """ Removes dublicate transactions from the passed open transactipns """
+    open_transactions_cleared = open_transactions[:]
+    for open_tx in open_transactions_cleared:
+        if is_dublicate_transaction(open_tx, reference_transactions):
+            try:
+                open_transactions_cleared.remove(open_tx)
+            except ValueError:
+                print('Warning! Trying to delete transaction from {} to {} (amount {}). Transaction already deleted'.format(
+                    open_tx.sender, open_tx.recipient, open_tx.amount))
+
+    return open_transactions_cleared
 
 
 def get_latest_transaction(transactions: List[Transaction]) -> Union[None, Transaction]:
@@ -69,3 +83,8 @@ def get_latest_transaction(transactions: List[Transaction]) -> Union[None, Trans
     if len(transactions) < 1:
         return None
     return transactions[-1]
+
+
+def is_dublicate_transaction(transaction: Transaction, reference_transactions: List[Transaction]) -> bool:
+    """ Returns whether the provided transaction is part of the reference transactions """
+    return any(list(map(lambda tx: tx.amount == transaction.amount and tx.sender == transaction.sender and tx.signature == transaction.signature and tx.recipient == transaction.recipient, reference_transactions)))

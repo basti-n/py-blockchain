@@ -1,21 +1,28 @@
-from typing import List, Tuple, Type, Union
-from utils.blockchainHelpers import get_balance
+from core.models.baseBlockchain import BaseBlockchain
+from typing import List, Tuple, Type
+from core.models.storage import Storage
+from utils.blockchainHelpers import get_balance, get_last_block
 from utils.blockchainLogger import warn_no_wallet
-from core.blockchainMiner import get_mined_block
+from core.blockchainMiner import get_added_block, get_mined_block
 from core.blockchainConstants import Block, GenesisBlock
 from core.blockchainTx import append_transaction, get_latest_transaction
 from core.blockchainWallet import Wallet
 from core.blockchainFactory import BlockchainFactory
+from core.blockchainConflictResolver import ConflictResolver
 
 
-class Blockchain:
-    def __init__(self, factory: Type[BlockchainFactory]) -> None:
+class Blockchain(BaseBlockchain):
+    def __init__(self, factory: Type[BlockchainFactory], node_id: str = '__internal__') -> None:
+        super().__init__()
         factory_instance = factory()
-        self.storage = factory_instance.get_storage()
+        self.node_id = node_id
+        self.storage = factory_instance.get_storage(
+            Storage.generate_path(prefix='storage', id=self.node_id))
         self.wallet = factory_instance.get_wallet()
         self.owner = factory_instance.get_owner()
+        self.peer_nodes = factory_instance.get_peer_nodes()
+        self.__resolve_conflicts = factory_instance.get_resolve_conflicts()
         self.__initialize()
-        pass
 
     @property
     def blockchain(self):
@@ -27,7 +34,10 @@ class Blockchain:
 
     @property
     def latest_transaction(self):
-        return get_latest_transaction(self.__open_transactions)
+        latest_open_tx = get_latest_transaction(self.__open_transactions)
+        latest_mined_tx = get_latest_transaction(
+            self.latest_block.transactions)
+        return latest_open_tx if latest_open_tx else latest_mined_tx
 
     @property
     def balance(self):
@@ -49,6 +59,14 @@ class Blockchain:
     def has_wallet(self):
         return self.wallet != None and self.owner != None
 
+    @property
+    def has_conflicts(self):
+        return self.__resolve_conflicts
+
+    @has_conflicts.setter
+    def has_conflicts(self, has_conflict: bool) -> None:
+        self.__resolve_conflicts = has_conflict
+
     def mine(self) -> bool:
         """ Mines a block and saves the blockchain and open transactions """
         if self.has_wallet:
@@ -59,13 +77,23 @@ class Blockchain:
             warn_no_wallet('mining')
             return False
 
-    def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set()) -> bool:
+    def add_block(self, block: Block) -> bool:
+        if self.has_wallet:
+            self.__blockchain, self.__open_transactions, self.__latest_block = get_added_block(
+                self.blockchain, self.__open_transactions, block)
+            return self.__save()
+        else:
+            warn_no_wallet('adding block')
+            return False
+
+    def add_transaction(self, sender: str, recipient: str, amount=1.0, participants: set = set(), signature: str = None, *, is_broadcast_tx=False) -> bool:
         """ Adds new transactions to open transactions and save it to storage  """
         if self.has_wallet:
-            signature = self.wallet.create_signature(sender, recipient, amount)
+            signature = self.wallet.create_signature(
+                sender, recipient, amount) if signature is None else signature
             initial_tx_size = self.open_transactions_size
             self.__open_transactions = append_transaction(
-                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants)
+                sender, recipient, amount, chain=self.__blockchain, signature=signature, open_tx=self.__open_transactions, participants=participants, skip_verification=is_broadcast_tx)
             self.__save()
             return self.open_transactions_size > initial_tx_size
         else:
@@ -75,7 +103,7 @@ class Blockchain:
     def create_wallet(self) -> Tuple[str, str]:
         """ Sets private key and owner (public key) """
         if self.wallet == None:
-            self.wallet = Wallet()
+            self.wallet = Wallet(node_id=self.node_id)
 
         private_key, public_key = self.wallet.create_keys()
         self.owner = public_key
@@ -91,21 +119,49 @@ class Blockchain:
     def load_wallet(self) -> None:
         """ Loads owner (public key) from storage """
         if self.wallet == None:
-            self.wallet = Wallet()
+            self.wallet = Wallet(node_id=self.node_id)
 
         if self.wallet.load_keys():
             self.owner = self.wallet.public_key
         else:
             self.__reset_owner()
 
+    def add_peer_node(self, node: str) -> bool:
+        """ Adds a peer node.
+
+        Arguments:
+            :node: The url of the node to add.
+        """
+        self.peer_nodes.add(node)
+        return self.__save()
+
+    def remove_peer_node(self, node: str) -> bool:
+        """ Deletes a peer node.
+
+        Arguments:
+            :node: The url of the node to remove.
+        """
+        self.peer_nodes.discard(node)
+        return self.__save()
+
+    def resolve_conflicts(self) -> bool:
+        resolver = ConflictResolver(self)
+        chain_resolved = resolver.resolve()
+
+        self.__save()
+        return chain_resolved
+
     def __initialize(self) -> None:
-        """ Initializes the blockchain and open transactions by using the provided storage """
-        self.__blockchain, self.__open_transactions = self.storage.load()
+        """ Initializes the blockchain, open transactions and peer nodes by using the provided storage """
+        self.__blockchain, self.__open_transactions, self.peer_nodes = self.storage.load()
         if len(self.blockchain) < 1:
             self.blockchain = [GenesisBlock()]
 
+        self.__latest_block = get_last_block(
+            self.blockchain)
+
     def __save(self) -> bool:
-        return self.storage.save(self.__blockchain, self.__open_transactions)
+        return self.storage.save(self.__blockchain, self.__open_transactions, self.peer_nodes)
 
     def __reset_owner(self) -> None:
         self.owner = None

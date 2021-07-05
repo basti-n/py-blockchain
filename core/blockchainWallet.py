@@ -1,4 +1,4 @@
-from core.models.storage import StorageAction
+from core.models.storage import Storage, StorageAction
 from utils.binaryConverters import BinaryConverter
 from utils.blockchainLogger import warn_no_key
 from core.walletStorage import WalletStorage
@@ -10,11 +10,13 @@ import Crypto.Random
 
 
 class Wallet:
-    def __init__(self, bits=1024) -> None:
+    def __init__(self, *, node_id: str, bits=1024) -> None:
         self.__bits = bits
         self.__private_key = None
         self.__public_key = None
-        self.storage = WalletStorage()
+        self.__node_id = node_id
+        self.storage = WalletStorage(
+            Storage.generate_path(prefix='wallet', id=self.__node_id))
 
     @property
     def public_key(self):
